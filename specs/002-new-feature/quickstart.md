@@ -49,25 +49,30 @@ System(SystemB, "System B")
 Rel(SystemA, SystemB, "REST")
 ```
 
-## Validate file output
+## Export a model from separate files
 
-Build the library, then invoke an author-written export function with Node.js.
-The function passes the completed text—not elements or formatter options—to
-`saveDiagram()`:
+For example, keep your model elements in one module, your reusable export
+function in another, and a small entry script that calls the function:
 
-```bash
-yarn build
-node --input-type=module <<'EOF'
-import { Edge, Node, exportDiagram, saveDiagram } from './dist/index.js';
+```text
+scripts/
+  model-elements.mjs
+  export-context.mjs
+  run-export.mjs
+```
 
-function exportContext(title, elements) {
-  return exportDiagram(elements, `C4Context\ntitle ${title}`, '');
-}
+In `scripts/model-elements.mjs`, define and export the elements you are
+currently working on. Their `toNotation()` methods own the model-specific
+diagram syntax:
+
+```js
+import { Edge, Node } from '../dist/index.js';
 
 class Service extends Node {
   constructor(id, name) {
     super();
-    Object.assign(this, { id, name });
+    this.id = id;
+    this.name = name;
   }
 
   toNotation() {
@@ -88,32 +93,53 @@ class Relationship extends Edge {
 
 const systemA = new Service('SystemA', 'System A');
 const systemB = new Service('SystemB', 'System B');
-const diagram = exportContext(
-  'System Context diagram',
-  [systemA, systemB, new Relationship(systemA, systemB, 'REST')],
-);
-await saveDiagram(diagram, './system-context.mmd');
-EOF
+
+export const elements = [
+  systemA,
+  systemB,
+  new Relationship(systemA, systemB, 'REST'),
+];
 ```
 
-Expected: `system-context.mmd` contains the exact generated Mermaid C4 text. `saveDiagram()`
-rejects on file creation or write errors, so an awaited call in the
-author-written function causes the host CLI invocation to fail rather than
-reporting success.
+In `scripts/export-context.mjs`, define the author-owned operation. It chooses
+the title and destination, passes the supplied element array to
+`exportDiagram()`, and awaits `saveDiagram()`:
 
-## Validate the author-written CLI workflow
+```js
+import { exportDiagram, saveDiagram } from '../dist/index.js';
 
-Place the model-loading and export code in an author-owned script and run it
-using the host runtime, for example:
+export async function exportContext(title, elements, destination) {
+  const diagram = exportDiagram(elements, `C4Context\ntitle ${title}`, '');
+  await saveDiagram(diagram, destination);
+}
+```
+
+In `scripts/run-export.mjs`, load your current array and call that function:
+
+```js
+import { elements } from './model-elements.mjs';
+import { exportContext } from './export-context.mjs';
+
+await exportContext(
+  'System Context diagram',
+  elements,
+  './system-context.mmd',
+);
+```
+
+Build the library, then run your entry script with Node:
 
 ```bash
-node ./scripts/export-model.mjs
+yarn build
+node ./scripts/run-export.mjs
 ```
 
-The framework provides no separate export command. The author script controls
-model loading, selects the elements, calls `exportDiagram()`, then awaits
-`saveDiagram(diagram, destination)`. Model-loading errors and file-writing
-errors should be allowed to propagate so Node exits unsuccessfully.
+The generated `system-context.mmd` contains the exact Mermaid C4 text shown
+above. There is no framework-provided export command: `node` runs your script,
+your script loads the model elements and calls your export function, and the
+function delegates text generation and file writing to the library. Since the
+script awaits the function without swallowing errors, model-loading and
+file-writing failures make the Node process exit unsuccessfully.
 
 ## Related design references
 

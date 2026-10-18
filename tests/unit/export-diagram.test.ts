@@ -1,42 +1,79 @@
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import { Edge } from '../../src/element/edge.js';
 import { Node } from '../../src/element/node.js';
-import { exportDiagram } from '../../src/export/export-diagram.js';
+import { exportDiagram, saveDiagram } from '../../src/export/export-diagram.js';
 
 describe('exportDiagram', () => {
   it('exports an empty selection as the required frame', () => {
-    expect(exportDiagram([])).toBe('diagram\nend\n');
+    expect(exportDiagram([], 'diagram', 'end')).toBe('diagram\nend\n');
+    expect(exportDiagram([], 'C4Context\ntitle System Context diagram', '')).toBe(
+      'C4Context\ntitle System Context diagram\n',
+    );
   });
 
-  it('renders selected nodes and edges using notation and preserves endpoint semantics', () => {
+  it('renders nodes before edges and preserves supplied boundaries', () => {
     class ServiceNode extends Node {
+      public constructor(
+        public readonly id: string,
+        public readonly name: string,
+      ) {
+        super();
+      }
+
       public override toNotation(): string {
-        return 'service api(server)[API]';
+        return `System(${this.id}, "${this.name}")`;
       }
     }
 
     class ServiceEdge extends Edge {
+      public constructor(
+        from: Node,
+        to: Node,
+        public readonly name: string,
+      ) {
+        super(from, to);
+      }
+
       public override toNotation(): string {
-        return 'api:R --> L:db';
+        const from = this.from as ServiceNode | undefined;
+        const to = this.to as ServiceNode | undefined;
+
+        return `Rel(${from?.id}, ${to?.id}, "${this.name}")`;
       }
     }
 
-    const a = new ServiceNode();
-    const b = new Node();
-    const c = new Node();
-    const selectedEdge = new ServiceEdge(a, b);
-    const omittedEndpointEdge = new Edge(c, undefined);
-    const selectedNode = new ServiceNode();
+    const systemA = new ServiceNode('SystemA', 'System A');
+    const systemB = new ServiceNode('SystemB', 'System B');
+    const relationship = new ServiceEdge(systemA, systemB, 'REST');
 
-    const output = exportDiagram([selectedEdge, selectedNode, omittedEndpointEdge]);
+    const output = exportDiagram(
+      [relationship, systemA, systemB],
+      'C4Context\ntitle System Context diagram',
+      '',
+    );
 
     expect(output).toBe(
-      'diagram\n' +
-        '  edge: Node -> undefined: Edge\n' +
-        '  edge: service api(server)[API] -> Node: api:R --> L:db\n' +
-        '  node: service api(server)[API]\n' +
-        'end\n',
+      'C4Context\n' +
+        'title System Context diagram\n' +
+        'System(SystemA, "System A")\n' +
+        'System(SystemB, "System B")\n' +
+        'Rel(SystemA, SystemB, "REST")\n',
     );
+  });
+
+  it('writes the export to a destination and surfaces write failures', async () => {
+    const tempDir = await mkdtemp(path.join(tmpdir(), 'diagram-export-'));
+    const destination = path.join(tempDir, 'system-context.mmd');
+
+    await saveDiagram('C4Context\nSystemA\n', destination);
+    expect(await readFile(destination, 'utf8')).toBe('C4Context\nSystemA\n');
+    await expect(saveDiagram('should fail', tempDir)).rejects.toThrow();
+
+    await rm(tempDir, { recursive: true, force: true });
   });
 });

@@ -16,9 +16,9 @@
 
 **Purpose**: Confirm the repository baseline and target the existing TypeScript + Vitest implementation points for the feature.
 
-- [ ] T001 Confirm the library entry points and validation scripts in package.json, tsconfig.json, and vitest.config.ts
-- [ ] T002 [P] Review the current export contract and element surface in src/export/export-diagram.ts, src/index.ts, src/element/node.ts, and src/element/edge.ts
-- [ ] T003 [P] Map the required feature behavior to the target tests in tests/unit/export-diagram.test.ts and tests/integration/quickstart.test.ts
+- [x] T001 Confirm the library entry points and validation scripts in package.json, tsconfig.json, and vitest.config.ts
+- [x] T002 [P] Review the current export contract and element surface in src/export/export-diagram.ts, src/index.ts, src/element/node.ts, and src/element/edge.ts
+- [x] T003 [P] Map the required feature behavior to the target tests in tests/unit/export-diagram.test.ts and tests/integration/quickstart.test.ts
 
 ---
 
@@ -28,10 +28,10 @@
 
 **Checkpoint**: The contract for notation, ordering, boundaries, and file-saving semantics is ready and testable.
 
-- [ ] T004 Define the export contract for author-provided start/end text and deterministic node-before-edge ordering in src/export/export-diagram.ts
-- [ ] T005 [P] Align the node and edge element APIs with the `toNotation()` contract and endpoint semantics in src/element/node.ts and src/element/edge.ts
-- [ ] T006 [P] Add the baseline failing test coverage for empty selections, boundary text, and repeated deterministic output in tests/unit/export-diagram.test.ts
-- [ ] T007 Confirm data-model and contract constraints for unique IDs, endpoint references, and exact diagram boundaries are represented in src/export/export-diagram.ts and specs/002-new-feature/contracts/diagram-export-contract.md
+- [x] T004 Define the export contract for author-provided start/end text and deterministic node-before-edge ordering in src/export/export-diagram.ts
+- [x] T005 [P] Align the node and edge element APIs with the `toNotation()` contract and endpoint semantics in src/element/node.ts and src/element/edge.ts
+- [x] T006 [P] Add the baseline failing test coverage for empty selections, boundary text, and repeated deterministic output in tests/unit/export-diagram.test.ts
+- [x] T007 Confirm data-model and contract constraints for unique IDs, endpoint references, and exact diagram boundaries are represented in src/export/export-diagram.ts and specs/002-new-feature/contracts/diagram-export-contract.md
 
 ---
 
@@ -43,15 +43,15 @@
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Add a failing unit test for custom notation and exact boundary framing in tests/unit/export-diagram.test.ts
-- [ ] T009 [P] [US1] Add a failing unit test for empty selection behavior and deterministic repeated output in tests/unit/export-diagram.test.ts
+- [x] T008 [P] [US1] Add a failing unit test for custom notation and exact boundary framing in tests/unit/export-diagram.test.ts
+- [x] T009 [P] [US1] Add a failing unit test for empty selection behavior and deterministic repeated output in tests/unit/export-diagram.test.ts
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Update `exportDiagram()` in src/export/export-diagram.ts to emit all selected node fragments before edge fragments while preserving original order within each group
-- [ ] T011 [US1] Update `exportDiagram()` in src/export/export-diagram.ts to accept author-supplied `startText` and `endText` and preserve them exactly, including the empty-selection case
-- [ ] T012 [US1] Ensure each node and edge uses its own `toNotation()` method without framework-added `node:` or `edge:` labels in src/element/node.ts, src/element/edge.ts, and src/export/export-diagram.ts
-- [ ] T013 [US1] Validate endpoint semantics and unique-ID usage for edge notation in src/element/edge.ts and the exported selection flow in src/export/export-diagram.ts
+- [x] T010 [US1] Update `exportDiagram()` in src/export/export-diagram.ts to emit all selected node fragments before edge fragments while preserving original order within each group
+- [x] T011 [US1] Update `exportDiagram()` in src/export/export-diagram.ts to accept author-supplied `startText` and `endText` and preserve them exactly, including the empty-selection case
+- [x] T012 [US1] Ensure each node and edge uses its own `toNotation()` method without framework-added `node:` or `edge:` labels in src/element/node.ts, src/element/edge.ts, and src/export/export-diagram.ts
+- [x] T013 [US1] Validate endpoint semantics and unique-ID usage for edge notation in src/element/edge.ts and the exported selection flow in src/export/export-diagram.ts
 
 **Checkpoint**: User Story 1 should produce deterministic, author-owned export text that can be validated independently.
 
@@ -65,14 +65,14 @@
 
 ### Tests for User Story 2
 
-- [ ] T014 [P] [US2] Add a failing file-save test for success and failure cases in tests/unit/export-diagram.test.ts
-- [ ] T015 [P] [US2] Add an integration-level export-to-file assertion in tests/integration/quickstart.test.ts
+- [x] T014 [P] [US2] Add a failing file-save test for success and failure cases in tests/unit/export-diagram.test.ts
+- [x] T015 [P] [US2] Add an integration-level export-to-file assertion in tests/integration/quickstart.test.ts
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Implement `saveDiagram(diagram, destination)` in src/export/export-diagram.ts using the host filesystem API and explicit error propagation
-- [ ] T017 [US2] Update the public export surface in src/index.ts so authors can call the generated diagram and file-saving API directly
-- [ ] T018 [US2] Document the file-output contract and the failure semantics in specs/002-new-feature/quickstart.md and README.md
+- [x] T016 [US2] Implement `saveDiagram(diagram, destination)` in src/export/export-diagram.ts using the host filesystem API and explicit error propagation
+- [x] T017 [US2] Update the public export surface in src/index.ts so authors can call the generated diagram and file-saving API directly
+- [x] T018 [US2] Document the file-output contract and the failure semantics in specs/002-new-feature/quickstart.md and README.md
 
 **Checkpoint**: User Story 2 should be able to produce a saved file artifact and surface filesystem errors to the caller.
 
@@ -86,14 +86,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T019 [P] [US3] Add a CLI validation scenario to tests/integration/quickstart.test.ts that exercises the author-written export function and generated file output
-- [ ] T020 [US3] Capture the failure path where model loading or destination writing fails and assert the CLI invocation does not report success
+- [x] T019 [P] [US3] Add a CLI validation scenario to tests/integration/quickstart.test.ts that exercises the author-written export function and generated file output
+- [x] T020 [US3] Capture the failure path where model loading or destination writing fails and assert the CLI invocation does not report success
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Document the author-owned CLI workflow in specs/002-new-feature/quickstart.md without introducing a framework-provided export command
-- [ ] T022 [US3] Verify the workflow calls `exportDiagram()` and passes the resulting text to `saveDiagram()` as described in specs/002-new-feature/contracts/diagram-export-contract.md
-- [ ] T023 [US3] Ensure the example code and documentation surface model-loading and write failures without hiding them in a successful export result
+- [x] T021 [US3] Document the author-owned CLI workflow in specs/002-new-feature/quickstart.md without introducing a framework-provided export command
+- [x] T022 [US3] Verify the workflow calls `exportDiagram()` and passes the resulting text to `saveDiagram()` as described in specs/002-new-feature/contracts/diagram-export-contract.md
+- [x] T023 [US3] Ensure the example code and documentation surface model-loading and write failures without hiding them in a successful export result
 
 **Checkpoint**: User Story 3 should be independently functional through the documented runtime workflow.
 
@@ -103,9 +103,9 @@
 
 **Purpose**: Final validation, documentation integrity, and cross-story cleanup.
 
-- [ ] T024 [P] Run the focused validation suite for the export feature in tests/unit/export-diagram.test.ts and tests/integration/quickstart.test.ts
-- [ ] T025 [P] Update the feature documentation and examples in README.md and specs/002-new-feature/quickstart.md to match the finalized export contract
-- [ ] T026 Perform a final requirement check against FR-001 through FR-010 in specs/002-new-feature/spec.md and ensure all task descriptions have exact file paths and checklist formatting
+- [x] T024 [P] Run the focused validation suite for the export feature in tests/unit/export-diagram.test.ts and tests/integration/quickstart.test.ts
+- [x] T025 [P] Update the feature documentation and examples in README.md and specs/002-new-feature/quickstart.md to match the finalized export contract
+- [x] T026 Perform a final requirement check against FR-001 through FR-010 in specs/002-new-feature/spec.md and ensure all task descriptions have exact file paths and checklist formatting
 
 ---
 
@@ -175,4 +175,4 @@ vitest run tests/unit/export-diagram.test.ts
 - User Story 3 task count: 5
 - Parallel opportunities: Setup, foundational tasks, story test creation, and final documentation validation are all parallelizable when the contract is stable
 - Suggested MVP scope: User Story 1 only, with the core export contract and deterministic output proving the feature's value
-- Format validation: all checklist items start with `- [ ]`, include a sequential `T###` ID, use `[P]` only when the task is parallelizable, include `[US1]`, `[US2]`, or `[US3]` only in story phases, and reference exact file paths in every task description
+- Format validation: all checklist items start with `- [x]`, include a sequential `T###` ID, use `[P]` only when the task is parallelizable, include `[US1]`, `[US2]`, or `[US3]` only in story phases, and reference exact file paths in every task description
