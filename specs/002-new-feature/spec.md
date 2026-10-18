@@ -8,6 +8,21 @@
 
 **Input**: User description: "Improve diagram export so authors can use their own notation instead of fixed `node:` and `edge:` labels, specify diagram start and finish text, emit nodes before edges, save the result to a specified file, and invoke export through the CLI to check a model during creation."
 
+The conformance example uses Mermaid C4 System Context syntax:
+
+```text
+C4Context
+title System Context diagram
+System(SystemA, "System A")
+System(SystemB, "System B")
+Rel(SystemA, SystemB, "REST")
+```
+
+An author-owned context export function accepts the title and supplies the
+first two lines. A `service` node type provides the notation for two nodes,
+each with a unique `id` and a `name`; the relationship edge type provides
+notation using its endpoint IDs and its own name.
+
 ## Clarifications
 
 ### Session 2026-10-18
@@ -77,21 +92,21 @@ A model author writes a function that loads their model, applies their custom ex
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST let authors define and reuse notation for representing nodes and edges, without requiring framework-defined `node:` or `edge:` labels.
+- **FR-001**: Each node and edge MUST provide its single reusable notation through its `toNotation()` method, without requiring framework-defined `node:` or `edge:` labels or per-export notation callbacks.
 - **FR-002**: The system MUST let authors specify the textual content that begins and ends an exported diagram.
 - **FR-003**: The system MUST emit all selected node representations before all selected edge representations, preserving the supplied order among nodes and among edges.
-- **FR-004**: The system MUST expose enough information about an edge's endpoints for the supplied edge notation to represent them, including when an endpoint is missing or not selected.
+- **FR-004**: Each edge MUST expose its endpoint references so its `toNotation()` method can represent endpoints, including when an endpoint is missing or not selected. Model elements that are used as diagram targets MUST have unique IDs so edge notation can identify them.
 - **FR-005**: The system MUST generate an empty diagram using the configured start and finish text when the selection contains no elements.
-- **FR-006**: The system MUST provide a way to save generated diagram text to an author-specified file and MUST report file creation or write failures explicitly.
+- **FR-006**: The system MUST provide a way to save already-generated diagram text to an author-specified file and MUST report file creation or write failures explicitly.
 - **FR-007**: The system MUST document how authors can invoke their own export function through the host language's command-line workflow; it MUST NOT require a framework-provided export CLI program.
-- **FR-008**: An author-written export function MUST be able to use the system's file-saving capability to write the generated diagram to an author-specified destination.
+- **FR-008**: An author-written export function MUST be able to pass the result of `exportDiagram()` and its destination to the system's file-saving capability.
 - **FR-009**: The documented command-line workflow MUST surface failures from the author-written export function instead of reporting a successful export.
 - **FR-010**: Repeated exports of the same model selection and notation MUST produce identical text.
 
 ### Key Entities
 
 - **Diagram Selection**: The nodes and edges chosen by an author for a particular export.
-- **Notation**: Author-provided rules for representing selected nodes, edges, and edge endpoints as text.
+- **Notation**: The single text representation returned by each node or edge's `toNotation()` method; edge notation may use endpoint IDs.
 - **Diagram Boundaries**: Author-provided starting and ending text that frames a diagram.
 - **Export Destination**: A user-selected file where the author-written export function saves the generated diagram.
 - **Author-Written Export Function**: User-authored code that loads a model, applies its chosen notation, and saves the generated diagram.
@@ -108,8 +123,8 @@ A model author writes a function that loads their model, applies their custom ex
 
 ## Assumptions
 
-- Authors supply notation rules for nodes, edges, and any endpoint details; the export capability does not prescribe a textual diagram language.
+- Authors implement notation on their node and edge types; the exporter does not prescribe a textual diagram language or accept per-export formatter callbacks.
 - Authors are responsible for writing and invoking their model-specific export function; documentation of the host language's CLI workflow is sufficient, and a dedicated framework export command is not required.
-- The author-written export function chooses and writes the output destination using the system's file-saving capability.
+- The author-written export function passes the generated diagram text and its chosen destination to the system's file-saving capability.
 - Export order is stable: source order is preserved within the node group and within the edge group, while nodes are always emitted first.
 - This feature produces textual diagrams only; visual layout and image rendering are not required.
