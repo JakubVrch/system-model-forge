@@ -1,6 +1,10 @@
 {
     "chat.tools.terminal.autoApprove": {
         "true": true,
-        "./.specify/scripts/bash/check-prerequisites.sh": true
+        "./.specify/scripts/bash/check-prerequisites.sh": true,
+        "/^python - <<'PY'\nfrom pathlib import Path\np = Path\\('specs/002-new-feature/tasks\\.md'\\)\ntext = p\\.read_text\\(\\)\nlines = \\[ln for ln in text\\.splitlines\\(\\) if ln\\.startswith\\('- \\[ \\] '\\)\\]\nprint\\('total', len\\(lines\\)\\)\nfor story in \\('US1','US2','US3'\\):\n    c = sum\\(1 for ln in lines if f'\\[\\{story\\}\\]' in ln\\)\n    print\\(story, c\\)\nprint\\('sample', lines\\[:3\\]\\)\nPY$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }
