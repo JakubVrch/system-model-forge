@@ -1,0 +1,6 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "true": true,
+        "./.specify/scripts/bash/check-prerequisites.sh": true
+    }
+}
