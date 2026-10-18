@@ -1,10 +1,10 @@
 # Feature Specification: Governed Model Partitions
 
-**Feature Branch**: `002-governed-model-partitions`
+**Feature Branch**: `999-governed-model-partitions`
 
 **Created**: 2026-10-11
 
-**Status**: Draft - preserved for future planning; feature 001 remains active
+**Status**: Draft - preserved as roadmap; not the active feature
 
 **Input**: Future feature scope extracted from the original broad feature 001 specification after feature 001 was narrowed to the extensible graph core.
 
