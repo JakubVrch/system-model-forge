@@ -110,3 +110,10 @@ The microservice environment fixture has separate infrastructure and service mod
 `tests/integration/quickstart.test.ts` demonstrates importing the fixture exports and checking their basic contents. Detailed model/export acceptance and metamodel contracts live in their own integration test files.
 
 Relative imports in TypeScript source name `.ts` files directly. The compiler's `rewriteRelativeImportExtensions` option rewrites runtime imports to `.js` during build, so the emitted ESM runs directly in Node.js.
+
+## Development checks
+
+Run `npm run typecheck`, `npm test`, and `npm run build` to validate the library.
+Run `npm run knip` to check for unused files, exports, and dependencies. Knip treats
+`src/index.ts` as the public library entry point and includes the declaration tests
+as entry points alongside the runtime tests discovered through Vitest.

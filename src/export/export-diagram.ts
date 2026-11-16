@@ -6,10 +6,6 @@ import { Node } from '../element/node.ts';
 
 export type { GraphElement } from '../element/graph-element.ts';
 
-function formatEndpoint(node: Node | undefined): string {
-  return node === undefined ? 'undefined' : node.toNotation();
-}
-
 export function exportDiagram(
   elements: Iterable<GraphElement>,
   startText = 'diagram',
