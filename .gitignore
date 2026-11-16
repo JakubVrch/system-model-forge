@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .specify/integrations/.cache/
+build/
+*.log
+.env*

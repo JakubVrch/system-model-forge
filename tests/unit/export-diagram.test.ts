@@ -4,9 +4,9 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { Edge } from '../../src/element/edge.js';
-import { Node } from '../../src/element/node.js';
-import { exportDiagram, saveDiagram } from '../../src/export/export-diagram.js';
+import { Edge } from '@core/element/edge';
+import { Node } from '@core/element/node';
+import { exportDiagram, saveDiagram } from '@core/export/export-diagram';
 
 describe('exportDiagram', () => {
   it('exports an empty selection as the required frame', () => {
@@ -64,6 +64,14 @@ describe('exportDiagram', () => {
         'System(SystemB, "System B")\n' +
         'Rel(SystemA, SystemB, "REST")\n',
     );
+  });
+
+  it('accepts sets and single-use iterables with nodes-first ordering', () => {
+    const a = new Node(), b = new Node(), edge = new Edge(a, b);
+    function* elements() { yield edge; yield a; yield b; }
+    const expected = 'diagram\nNode\nNode\nEdge\nend\n';
+    expect(exportDiagram(elements())).toBe(expected);
+    expect(exportDiagram(new Set([edge, a, b]))).toBe(expected);
   });
 
   it('writes the export to a destination and surfaces write failures', async () => {

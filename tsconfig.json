@@ -4,15 +4,37 @@
     "target": "ES2023",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ES2023"],
-    "types": ["node"],
+    "lib": [
+      "ES2023"
+    ],
+    "types": [
+      "node"
+    ],
     "noUncheckedIndexedAccess": true,
     "verbatimModuleSyntax": true,
     "declaration": true,
     "sourceMap": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@core": [
+        "./src/index.ts"
+      ],
+      "@core/*": [
+        "./src/*.ts"
+      ],
+      "@metamodel": [
+        "./tests/integration/fixtures/microservice-environment/metamodel/index.ts"
+      ],
+      "@fixtures/*": [
+        "./tests/integration/fixtures/*/index.ts"
+      ]
+    },
+    "rewriteRelativeImportExtensions": true
   },
-  "include": ["src", "tests"]
+  "include": [
+    "src",
+    "tests"
+  ]
 }

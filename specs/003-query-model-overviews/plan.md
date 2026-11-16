@@ -8,7 +8,7 @@
 
 Add two public, domain-independent helpers: `connectedNodes(nodes, predicate, direction)` for one edge-filtered hop in the outgoing, incoming, or both directions, and `cleanSelection(elements)` for explicit selection cleanup. Use native array filtering and identity-based `Set` merging to compose them. Expand the existing quickstart into two independently exported service models sharing topics and databases, with independently verified event overview diagrams and saved files.
 
-The prerequisite script resolves this feature and branch. The specification's branch header still describes its earlier creation on `main`; it is historical metadata, not the active-feature selector. The preliminary `investigation.md` is supporting evidence; the API decisions below and in `contracts/query-selection-contract.md` are the planning output.
+The prerequisite script resolves this feature and branch. The preliminary `investigation.md` is supporting evidence; the API decisions below and in `contracts/query-selection-contract.md` are the planning output.
 
 ## Technical Context
 
@@ -26,9 +26,9 @@ The prerequisite script resolves this feature and branch. The specification's br
 
 **Performance Goals**: Traversal O(S + A) expected work for S supplied start references and A direction-selected adjacency entries of unique starts; cleanup O(N) expected work for N selection entries. Disconnected graph growth adds zero predicate calls. Stable output over 100 full derivation/export repetitions.
 
-**Constraints**: Preserve reference identity, deterministic order, source collections, and adjacency. Accept readonly inputs and return fresh frozen readonly result arrays. No recursive traversal, global registry, query language, endpoint synthesis, implicit export cleanup, or partition governance. Predicates must not mutate the graph while querying.
+**Constraints**: Preserve reference identity, deterministic order, source collections, and adjacency. Accept ReadonlySet inputs and return fresh protected readonly result sets. No recursive traversal, global registry, query language, endpoint synthesis, implicit export cleanup, or partition governance. Predicates must not mutate the graph while querying.
 
-**Scale/Scope**: Two reusable helpers; one test-only metamodel, two infrastructure folders, two service folders; unit, declaration, public-surface, and integration coverage. No change to the existing exporter or graph construction semantics.
+**Scale/Scope**: Two reusable helpers; one test-only metamodel, two infrastructure folders, two service folders; unit, declaration, public-surface, and integration coverage. Exporter accepts Iterable inputs; graph construction semantics are retained.
 
 ## Constitution Check
 
@@ -39,9 +39,9 @@ Gate evaluated before research and again after design against constitution v1.1.
 | I. Model-as-Source | PASS: source-defined model and queries | Fixture modules own models; diagrams are derived outputs |
 | II. Graph-First | PASS: existing nodes, edges, runtime adjacency | Helpers use `Node.outgoing`, `Node.incoming`, or `Node.edges` and original `Edge` endpoints |
 | III. Package-Bounded Composition | PASS: explicit TypeScript module exports | Infrastructure imports only metamodel; services import infrastructure; public helpers exported by `src/index.ts` |
-| IV. Immutable Shared Exports | PASS: preserve shared references and existing readonly boundaries | Freeze new result arrays and fixture export arrays; freeze fixture instances after construction, with readonly domain fields. Helpers neither freeze nor mutate caller-owned objects. Existing adjacency remains controlled by edge construction, never changed by queries |
+| IV. Immutable Shared Exports | PASS: preserve shared references and existing readonly boundaries | Freeze new result sets and fixture export sets; freeze fixture instances after construction, with readonly domain fields. Helpers neither freeze nor mutate caller-owned objects. Existing adjacency remains controlled by edge construction, never changed by queries |
 | V. Deterministic, Validateable Builds | PASS: ordered selection and existing textual export | Identity sets, stable order, independent expected text, 100 repetitions, saved-file assertions |
-| VI. Host-Language First | PASS: arrays, sets, native modules | No custom selection/merge DSL, dependencies, module system, or testing framework |
+| VI. Host-Language First | PASS: arrays, sets, native modules | No selection/merge DSL or dependencies; readonlySet provides the required runtime immutability boundary |
 | MVP and workflow | PASS: bounded core-library extension | Failing behavioral tests precede implementation; validate composition, immutability, declarations, and textual exports |
 
 No constitution exception is required. Existing graph construction remains supported; this feature does not introduce package ownership enforcement or promise protection from arbitrary mutating callbacks. Shared fixture exports are immutable after assembly, and query operations introduce no mutation capability.
@@ -68,8 +68,11 @@ specs/003-query-model-overviews/
 
 ```text
 src/
-├── index.ts                              # Export both helpers
-├── element/                              # Reuse existing node/edge/adjacency APIs
+├── index.ts                              # Export helpers and readonlySet
+├── collection/readonly-set.ts            # Runtime-protected snapshots
+├── element/
+│   ├── define-element.ts                 # Typed construction, freezing, and .is guards
+│   └── graph-element.ts                  # Shared Node | Edge type
 ├── query/
 │   ├── connected-nodes.ts               # New one-hop query
 │   └── clean-selection.ts           # New explicit cleanup
@@ -82,16 +85,18 @@ tests/
 │   └── public-surface.test.ts             # Extend exact export list
 ├── type/declarations.test-d.ts            # Add public API typing coverage
 └── integration/
-    ├── quickstart.test.ts                 # Expand existing executable guide
+    ├── quickstart.test.ts                 # Concise consumer smoke test
+    ├── microservice-environment.test.ts   # Detailed graph/export acceptance
+    ├── metamodel.test.ts                  # Definition exports and domain parameters
     └── fixtures/microservice-environment/
         ├── metamodel/                    # One test-only element class per file
         │   ├── service-node.ts
         │   ├── module-node.ts
         │   ├── topic-node.ts
         │   ├── database-node.ts
-        │   ├── module-relationship.ts
-        │   ├── event-relationship.ts
-        │   └── database-relationship.ts
+        │   ├── module-composition.ts
+        │   ├── event-flow.ts
+        │   └── database-usage.ts
         ├── infrastructure/
         │   ├── topics/index.ts
         │   └── databases/index.ts
@@ -99,7 +104,7 @@ tests/
         └── service-b/index.ts
 ```
 
-**Structure Decision**: Keep the single-library layout and add a small `query` directory. Reuse the public `GraphElement` type with a type-only import from its existing declaration location; do not relocate it or create a second union. Fixtures import the public package entry using repository-relative `.js` ESM paths. Both services derive and export their own overview; the integration test independently checks the results.
+**Structure Decision**: Keep the single-library layout and add a small `query` directory. Define the shared `GraphElement` type in `src/element/graph-element.ts`; query and export layers import it from the element layer. Keep a compatibility type re-export from `src/export/export-diagram.ts` and expose it directly through `src/index.ts`. Fixtures import the public package entry using configured @core, @metamodel, and @fixtures aliases. Both services derive and export their own overview; the integration test independently checks the results.
 
 ## Phase 0: Research Outcomes
 
@@ -115,7 +120,7 @@ Implementation should begin with failing focused tests, add the two helpers and 
 | --- | --- |
 | FR-001, FR-007 | Native filter, stable Set merge, four-stage service pipeline |
 | FR-002, FR-003, FR-011 | Edge predicate before hop, unique starts/targets, local adjacency, predicate-count tests |
-| FR-004 | Two-pass identity membership cleanup, input-order and parallel-edge tests |
+| FR-004 | Set membership cleanup, input-order and parallel-edge tests |
 | FR-005, FR-010 | Frozen snapshots, source/adjacency preservation, complete edge-case matrix |
 | FR-006, FR-008 | Independently exported service folders, shared and exclusive topics, unrelated infrastructure |
 | FR-009 | Exact reference membership, independent diagram literals, file round trips, 100 full pipeline runs |
@@ -126,3 +131,17 @@ Implementation should begin with failing focused tests, add the two helpers and 
 ## Complexity Tracking
 
 No violations or additional architectural layers requiring justification.
+
+## Element Definition Extension
+
+Export core defineElement and the ElementDefinition type. It returns a frozen callable with inferred constructor arguments, shallow-frozen results, and an instanceof-based .is guard. Migrate all seven fixture metamodel modules to private classes with type-only exports plus their definitions; model consumers invoke definitions and use generated guards. Core Node/Edge construction remains available to metamodel authors. README and contracts document domain-specific arguments, defaults/rest parameters, subclass recognition, and shallow freezing. No partition interface is introduced.
+
+## Fixture organization refinement
+
+Use DatabaseUsage/databaseUsage, EventFlow/eventFlow, and ModuleComposition/moduleComposition as the three relationship classes/definitions. The example metamodel index exports all definitions and type-only classes. The fixture root index exports both service namespaces and infrastructure collections for simple consumer imports. Configure TypeScript paths and matching Vitest aliases; keep emitted core modules using relative imports. Split quickstart smoke coverage from detailed model acceptance and metamodel contract tests.
+
+## Shared collection operations
+
+Place public filterSet under src/query for selection predicates, and unionSet under src/collection for composition. filterSet supports boolean predicates and type guards; unionSet infers the union of iterable source element types. Both stream through readonlySet for runtime-protected snapshots without intermediate arrays. Use them in both service fixtures and the repeat-derivation integration test; cleanup delegates filtering to filterSet. Dedicated unit/declaration tests cover identity, order, snapshot protection, empty results, errors/narrowing, and heterogeneous composition.
+
+Relative source imports use .ts extensions. TypeScript rewriteRelativeImportExtensions converts emitted runtime specifiers to .js for native Node.js ESM execution. Development @ aliases remain resolved by TypeScript/Vitest.

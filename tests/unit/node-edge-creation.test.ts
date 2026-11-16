@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { Edge } from '../../src/element/edge.js';
-import { Node } from '../../src/element/node.js';
+import { Edge } from '@core/element/edge';
+import { Node } from '@core/element/node';
 
 describe('element creation', () => {
   it('creates default nodes and edges and supports subclassing', () => {

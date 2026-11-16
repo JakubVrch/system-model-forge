@@ -1,6 +1,6 @@
-import { getConnectedEdges, getIncomingEdges, getOutgoingEdges } from './adjacency.js';
-import { ModelElement } from './model-element.js';
-import type { Edge } from './edge.js';
+import { getConnectedEdges, getIncomingEdges, getOutgoingEdges } from './adjacency.ts';
+import { ModelElement } from './model-element.ts';
+import type { Edge } from './edge.ts';
 
 export class Node extends ModelElement {
   public constructor() {
@@ -11,15 +11,15 @@ export class Node extends ModelElement {
     return 'Node';
   }
 
-  public get edges(): readonly Edge[] {
-    return getConnectedEdges(this) as readonly Edge[];
+  public get edges(): ReadonlySet<Edge> {
+    return getConnectedEdges(this) as ReadonlySet<Edge>;
   }
 
-  public get outgoing(): readonly Edge[] {
-    return getOutgoingEdges(this) as readonly Edge[];
+  public get outgoing(): ReadonlySet<Edge> {
+    return getOutgoingEdges(this) as ReadonlySet<Edge>;
   }
 
-  public get incoming(): readonly Edge[] {
-    return getIncomingEdges(this) as readonly Edge[];
+  public get incoming(): ReadonlySet<Edge> {
+    return getIncomingEdges(this) as ReadonlySet<Edge>;
   }
 }

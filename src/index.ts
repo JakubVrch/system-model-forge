@@ -1,5 +1,12 @@
-export { ModelElement } from './element/model-element.js';
-export { Node } from './element/node.js';
-export { Edge } from './element/edge.js';
-export { exportDiagram, saveDiagram } from './export/export-diagram.js';
-export type { GraphElement } from './export/export-diagram.js';
+export { ModelElement } from './element/model-element.ts';
+export { Node } from './element/node.ts';
+export { Edge } from './element/edge.ts';
+export { exportDiagram, saveDiagram } from './export/export-diagram.ts';
+export type { GraphElement } from './element/graph-element.ts';
+export { connectedNodes } from './query/connected-nodes.ts';
+export { cleanSelection } from './query/clean-selection.ts';
+export { readonlySet } from './collection/readonly-set.ts';
+export { defineElement } from './element/define-element.ts';
+export type { ElementDefinition } from './element/define-element.ts';
+export { filterSet } from './query/filter-set.ts';
+export { unionSet } from './collection/union-set.ts';
