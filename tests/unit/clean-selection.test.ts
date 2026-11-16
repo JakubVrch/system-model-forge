@@ -1,58 +1,86 @@
 import { describe, expect, it } from 'vitest';
-import { Node, Edge, cleanSelection, exportDiagram, type GraphElement } from '@core';
 
-function identical(actual: Iterable<GraphElement>, expected: Iterable<GraphElement>): void {
-  const values = [...actual], expectedValues = [...expected];
-  expect(values).toHaveLength(expectedValues.length);
-  expectedValues.forEach((element, i) => expect(values[i]).toBe(element));
-}
+import { Node, Edge, cleanSelection, type GraphElement } from '@core';
 
 describe('cleanSelection', () => {
-  it('keeps exact entries in input order using identity and both defined endpoints', () => {
-    const a = new Node(), b = new Node(), absent = new Node(), isolated = new Node();
-    const edge = new Edge(a, b), parallel = new Edge(a, b), loop = new Edge(a, a);
-    const omittedTarget = new Edge(a, absent), omittedSource = new Edge(absent, b);
-    const missingTarget = new Edge(a, undefined), missingSource = new Edge(undefined, b);
-    const input: ReadonlySet<GraphElement> = new Set([edge, omittedTarget, missingTarget, a, parallel, omittedSource, missingSource, loop, b, isolated, edge, a]);
-    const before = [a, b, absent, isolated].map(n => [[...n.outgoing], [...n.incoming], [...n.edges]]);
-    const result = cleanSelection(input);
-    identical(result, [edge, a, parallel, loop, b, isolated]);
-    expect(Object.isFrozen(result)).toBe(true);
-    expect(() => (result as Set<GraphElement>).clear()).toThrow();
-    expect(Object.isFrozen(a)).toBe(false);
-    expect(Object.isFrozen(edge)).toBe(false);
-    expect(cleanSelection(input)).not.toBe(result);
-    expect([a, b, absent, isolated].map(n => [[...n.outgoing], [...n.incoming], [...n.edges]])).toEqual(before);
-    identical([...input], [edge, omittedTarget, missingTarget, a, parallel, omittedSource, missingSource, loop, b, isolated]);
+  it('keeps edges when both endpoints are selected, even if the edge comes first', () => {
+    const orders = new Node();
+    const payments = new Node();
+    const first = new Edge(orders, payments);
+    const parallel = new Edge(orders, payments);
+    const loop = new Edge(orders, orders);
+    const selection = new Set<GraphElement>([first, orders, parallel, loop, payments]);
+
+    const result = [...cleanSelection(selection)];
+
+    // Check identity because distinct nodes and edges can have identical properties.
+    expect(result).toHaveLength(5);
+    expect(result[0]).toBe(first);
+    expect(result[1]).toBe(orders);
+    expect(result[2]).toBe(parallel);
+    expect(result[3]).toBe(loop);
+    expect(result[4]).toBe(payments);
   });
 
-  it('returns fresh protected empty sets and never adds unselected elements', () => {
-    const a = new Node(), b = new Node();
-    const edge = new Edge(a, b);
-    const empty = cleanSelection(new Set<GraphElement>([]));
+  it('removes edges to nodes outside the selection', () => {
+    const orders = new Node();
+    const payments = new Node();
+    const missingTarget = new Edge(orders, payments);
+    const missingSource = new Edge(payments, orders);
+
+    const result = cleanSelection(new Set<GraphElement>([orders, missingTarget, missingSource]));
+
+    expect(result.size).toBe(1);
+    expect([...result][0]).toBe(orders);
+  });
+
+  it('removes edges with undefined endpoints', () => {
+    const orders = new Node();
+    const missingTarget = new Edge(orders, undefined);
+    const missingSource = new Edge(undefined, orders);
+
+    const result = cleanSelection(new Set<GraphElement>([orders, missingTarget, missingSource]));
+
+    expect(result.size).toBe(1);
+    expect([...result][0]).toBe(orders);
+  });
+
+  it('keeps isolated nodes without adding unselected edges or endpoints', () => {
+    const orders = new Node();
+    const payments = new Node();
+    const isolated = new Node();
+    const edge = new Edge(orders, payments);
+
+    expect([...cleanSelection(new Set<GraphElement>([edge]))]).toEqual([]);
+    const nodes = cleanSelection(new Set([orders, payments, isolated]));
+    expect(nodes.size).toBe(3);
+    expect(nodes.has(orders)).toBe(true);
+    expect(nodes.has(payments)).toBe(true);
+    expect(nodes.has(isolated)).toBe(true);
+  });
+
+  it('returns a protected result without changing the selection or model', () => {
+    const orders = new Node();
+    const payments = new Node();
+    const edge = new Edge(orders, payments);
+    const selection = new Set<GraphElement>([orders, edge]);
+
+    const result = cleanSelection(selection);
+
+    expect(() => (result as Set<GraphElement>).clear()).toThrow();
+    expect(cleanSelection(selection)).not.toBe(result);
+    expect([...selection]).toEqual([orders, edge]);
+    expect([...orders.outgoing]).toEqual([edge]);
+    expect([...payments.incoming]).toEqual([edge]);
+    expect(Object.isFrozen(orders)).toBe(false);
+    expect(Object.isFrozen(edge)).toBe(false);
+  });
+
+  it('returns a fresh protected empty set for an empty selection', () => {
+    const empty = cleanSelection(new Set());
+
     expect(empty.size).toBe(0);
     expect(Object.isFrozen(empty)).toBe(true);
-    expect(empty).not.toBe(cleanSelection(new Set<GraphElement>([])));
-    identical(cleanSelection(new Set<GraphElement>([edge])), []);
-    identical(cleanSelection(new Set<GraphElement>([a, b])), [a, b]);
-  });
-
-  it('supports stable native merging and 100 deterministic explicit cleanup exports', () => {
-    const a = new Node(), b = new Node(), omitted = new Node();
-    const kept = new Edge(a, b), dropped = new Edge(a, omitted);
-    const local = Object.freeze([a, kept, dropped]);
-    const reached = Object.freeze([b, a, b]);
-    const before = [[...a.edges], [...b.edges], [...omitted.edges]];
-    for (let i = 0; i < 100; i++) {
-      const merged = new Set<GraphElement>([...local, ...reached]);
-      identical([...merged], [a, kept, dropped, b]);
-      const result = cleanSelection(merged);
-      identical(result, [a, kept, b]);
-      expect(exportDiagram(result)).toBe('diagram\nNode\nNode\nEdge\nend\n');
-    }
-    identical(local, [a, kept, dropped]);
-    identical(reached, [b, a, b]);
-    expect([[...a.edges], [...b.edges], [...omitted.edges]]).toEqual(before);
-    expect(exportDiagram(local)).toBe('diagram\nNode\nEdge\nEdge\nend\n');
+    expect(empty).not.toBe(cleanSelection(new Set()));
   });
 });

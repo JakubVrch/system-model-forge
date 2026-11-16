@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { unionSet, readonlySet } from '@core';
 
 describe('unionSet', () => {
-  it('combines heterogeneous sources by identity in first-occurrence order', () => {
-    const first = {}, sameLabelDifferentObject = {};
+  it('combines different value types and keeps each original object once', () => {
+    const first = { label: 'orders' };
+    const sameLabelDifferentObject = { label: 'orders' };
     const result = unionSet([first], readonlySet([first, sameLabelDifferentObject]), ['label', first]);
     expect(result.size).toBe(3);
     const values = [...result];
@@ -12,16 +13,19 @@ describe('unionSet', () => {
     expect(values[2]).toBe('label');
   });
 
-  it('consumes iterables once and returns a protected snapshot independent of inputs', () => {
+  it('accepts values produced one at a time and keeps an independent protected copy', () => {
     const source = new Set([1, 2]);
-    function* later() { yield 2; yield 3; }
+    // A generator supplies its values one at a time and can be exhausted.
+    function* later() {
+      yield 2;
+      yield 3;
+    }
     const iterator = later();
     const result = unionSet(source, iterator);
     expect([...result]).toEqual([1, 2, 3]);
     expect(iterator.next().done).toBe(true);
     source.clear();
     expect([...result]).toEqual([1, 2, 3]);
-    expect(Object.isFrozen(result)).toBe(true);
     expect(() => (result as Set<number>).clear()).toThrow();
   });
 

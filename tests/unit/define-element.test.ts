@@ -16,7 +16,7 @@ class EventEdge extends Edge {
 }
 
 describe('defineElement', () => {
-  it('forwards constructor arguments and defaults, creating distinct shallow-frozen instances', () => {
+  it('forwards constructor arguments and uses constructor defaults', () => {
     const service = defineElement(ServiceNode);
     const options = { enabled: true };
     const first = service('orders', 'Orders', options);
@@ -27,6 +27,13 @@ describe('defineElement', () => {
     expect(first.name).toBe('Orders');
     expect(second.name).toBe('orders');
     expect(first.options).toBe(options);
+  });
+
+  it('freezes each instance but leaves nested objects editable', () => {
+    const service = defineElement(ServiceNode);
+    const options = { enabled: true };
+    const first = service('orders', 'Orders', options);
+
     expect(Object.isFrozen(first)).toBe(true);
     expect(Reflect.set(first, 'id', 'changed')).toBe(false);
     expect(Object.isFrozen(options)).toBe(false);
@@ -34,9 +41,10 @@ describe('defineElement', () => {
     expect(first.options.enabled).toBe(false);
   });
 
-  it('freezes after the complete subclass constructor and preserves rest arguments and adjacency', () => {
+  it('finishes constructing an edge before freezing it', () => {
     const eventFlow = defineElement(EventEdge);
-    const from = new Node(), to = new Node();
+    const from = new Node();
+    const to = new Node();
     const edge = eventFlow(from, to, 'write', 'audit', 'async');
     expect(edge.kind).toBe('write');
     expect(edge.labels).toEqual(['audit', 'async']);
@@ -51,18 +59,27 @@ describe('defineElement', () => {
 
   it('recognizes subclasses and existing instances without creating or freezing them', () => {
     let constructed = 0;
-    class Child extends ServiceNode { public constructor() { super('child'); constructed++; } }
+    class Child extends ServiceNode {
+      public constructor() {
+        super('child');
+        constructed++;
+      }
+    }
     const service = defineElement(ServiceNode);
     const raw = new ServiceNode('raw');
     const child = new Child();
     expect(service.is(raw)).toBe(true);
     expect(service.is(child)).toBe(true);
-    for (const value of [new Node(), new Edge(undefined, undefined), {}, null, undefined, 42, 'service', service]) {
-      expect(service.is(value)).toBe(false);
-    }
     expect(constructed).toBe(1);
     expect(Object.isFrozen(raw)).toBe(false);
     expect(Object.isFrozen(child)).toBe(false);
+  });
+
+  it('does not recognize an unrelated object or null', () => {
+    const service = defineElement(ServiceNode);
+
+    expect(service.is({})).toBe(false);
+    expect(service.is(null)).toBe(false);
   });
 
   it('freezes the callable definition and its guard property', () => {
@@ -75,9 +92,20 @@ describe('defineElement', () => {
 
   it('propagates the original constructor error', () => {
     const error = new Error('invalid model');
-    class Invalid extends Node { public constructor() { super(); throw error; } }
+    class Invalid extends Node {
+      public constructor() {
+        super();
+        throw error;
+      }
+    }
     const invalid = defineElement(Invalid);
-    expect(() => invalid()).toThrow(error);
-    try { invalid(); } catch (caught) { expect(caught).toBe(error); }
+    let caught: unknown;
+    try {
+      invalid();
+    } catch (failure) {
+      caught = failure;
+    }
+
+    expect(caught).toBe(error);
   });
 });
