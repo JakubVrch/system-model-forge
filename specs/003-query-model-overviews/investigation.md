@@ -13,15 +13,15 @@ Date: 2026-11-16. Preliminary findings supporting specification, not a finalized
 
 ## Smallest useful additions to consider during planning
 
-1. An outgoing-target utility accepting selected nodes and an edge predicate, returning defined targets once in first-discovery order. A candidate name is `outgoingTargets(nodes, predicate)`. A single-node primitive composed with ordinary collection operations is also viable if the overview guarantees remain the same.
-2. A selection-cleanup utility retaining edges only when both endpoints are present. A candidate name is `retainInternalEdges(elements)`. Build a node-identity membership set once, then filter the input; expected work is linear in selection size with ordinary set lookup assumptions.
+1. A direction-aware one-hop utility accepting selected nodes, an edge predicate, and outgoing/incoming/both direction, returning defined opposite endpoints once in first-discovery order. The finalized plan names this `connectedNodes(nodes, predicate, direction)`. Existing outgoing, incoming, and incident snapshots support all three modes.
+2. A selection-cleanup utility retaining edges only when both endpoints are present. A candidate name is `cleanSelection(elements)`. Build a node-identity membership set once, then filter the input; expected work is linear in selection size with ordinary set lookup assumptions.
 3. Stable identity-based merging can use existing set/array facilities. Add a merge utility only if the example demonstrates a concrete need.
 
 Framework utilities operate on generic nodes and edges. Service, module, topic, and database specializations belong only to the integration test case. Names are provisional. The traversal predicate should receive the edge so callers can inspect edge kind and destination. Target type-guard inference, a separate target predicate, and a general opposite-endpoint helper are planning choices. No query language or registry is needed.
 
 ## Integration test case arrangement
 
-- A shared vocabulary defines service, module, topic, database, and relationship specializations.
+- A shared `metamodel/` folder defines service, module, topic, database, and relationship specializations, with each element class in a separate file.
 - An infrastructure/topics folder exports topic instances and their collection; a separate databases folder does the same for databases.
 - Two service folders import infrastructure and export service node, module collection, complete local element collection, and derived event overview.
 - Include a shared topic, a topic specific to each service, unrelated infrastructure, module links, database links, and parallel event edges to make deduplication observable.
@@ -36,8 +36,8 @@ Implementation should export chosen helpers from `src/index.ts`, update `tests/u
 
 ## Efficiency validation
 
-- Count predicate evaluations over selected outgoing edges; disconnected infrastructure must add none.
-- Visit each selected node once and collect targets with a stable identity set. Work scales with selected nodes and outgoing edges, not the whole graph.
+- Count predicate evaluations over selected nodes' direction-specific adjacency entries; disconnected infrastructure must add none.
+- Visit each selected node once and collect targets with a stable identity set. Work scales with selected nodes and direction-specific adjacency entries, not the whole graph.
 - Review cleanup for one membership-building pass and one filtering pass; avoid per-edge searches through the full selection.
 - Prefer operation counts and algorithm review over machine-dependent wall-clock assertions.
 
