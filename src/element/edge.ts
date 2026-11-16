@@ -1,6 +1,6 @@
-import { registerIncoming, registerOutgoing } from './adjacency.js';
-import { ModelElement } from './model-element.js';
-import type { Node } from './node.js';
+import { registerIncoming, registerOutgoing } from './adjacency.ts';
+import { ModelElement } from './model-element.ts';
+import type { Node } from './node.ts';
 
 export class Edge extends ModelElement {
   public readonly from: Node | undefined;

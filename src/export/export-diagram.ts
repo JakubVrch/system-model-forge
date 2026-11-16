@@ -1,17 +1,17 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
-import { Edge } from '../element/edge.js';
-import { Node } from '../element/node.js';
+import type { GraphElement } from '../element/graph-element.ts';
+import { Node } from '../element/node.ts';
 
-export type GraphElement = Node | Edge;
+export type { GraphElement } from '../element/graph-element.ts';
 
 function formatEndpoint(node: Node | undefined): string {
   return node === undefined ? 'undefined' : node.toNotation();
 }
 
 export function exportDiagram(
-  elements: readonly GraphElement[],
+  elements: Iterable<GraphElement>,
   startText = 'diagram',
   endText = 'end',
 ): string {
