@@ -4,30 +4,28 @@ import { Edge } from '@core/element/edge';
 import { Node } from '@core/element/node';
 
 describe('element creation', () => {
-  it('creates default nodes and edges and supports subclassing', () => {
-    const a = new Node();
-    const b = new Node();
+  it('creates nodes and edges with default notation', () => {
+    const orders = new Node();
+    const payments = new Node();
 
     expect(new Node().toNotation()).toBe('Node');
-    expect(new Edge(a, b).toNotation()).toBe('Edge');
+    expect(new Edge(orders, payments).toNotation()).toBe('Edge');
 
-    const edge = new Edge(a, b);
-    expect(edge.from).toBe(a);
-    expect(edge.to).toBe(b);
+    const edge = new Edge(orders, payments);
+    expect(edge.from).toBe(orders);
+    expect(edge.to).toBe(payments);
+  });
 
-    expect(() => new Edge(undefined, undefined)).not.toThrow();
-    expect(() => new Edge(a, undefined)).not.toThrow();
-    expect(() => new Edge(undefined, b)).not.toThrow();
-
+  it('allows missing endpoints', () => {
     const undefinedEdge = new Edge(undefined, undefined);
     expect(undefinedEdge.from).toBeUndefined();
     expect(undefinedEdge.to).toBeUndefined();
+  });
+
+  it('lets subclasses provide their own notation', () => {
+    const orders = new Node();
 
     class ServiceNode extends Node {
-      public extra(): string {
-        return 'ok';
-      }
-
       public override toNotation(): string {
         return 'service api(server)[API]';
       }
@@ -40,14 +38,13 @@ describe('element creation', () => {
     }
 
     const serviceNode = new ServiceNode();
-    const serviceEdge = new ServiceEdge(serviceNode, a);
+    const serviceEdge = new ServiceEdge(serviceNode, orders);
 
     expect(serviceNode instanceof Node).toBe(true);
     expect(serviceEdge instanceof Edge).toBe(true);
-    expect(serviceNode.extra()).toBe('ok');
     expect(serviceNode.toNotation()).toBe('service api(server)[API]');
     expect(serviceEdge.toNotation()).toBe('api:R --> L:db');
     expect(serviceEdge.from).toBe(serviceNode);
-    expect(serviceEdge.to).toBe(a);
+    expect(serviceEdge.to).toBe(orders);
   });
 });

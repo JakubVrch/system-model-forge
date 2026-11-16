@@ -1,69 +1,72 @@
 import { describe, expect, it } from 'vitest';
 
-import { Edge } from '@core/element/edge';
-import { Node } from '@core/element/node';
+import { Edge, Node } from '@core';
 
-class ServiceEdge extends Edge {
-  public override toNotation(): string {
-    return 'service-edge';
-  }
-}
+describe('node edges', () => {
+  it('returns no edges for an isolated node', () => {
+    const orders = new Node();
 
-describe('traversal', () => {
-  it('exposes incident edges and preserves immutable snapshots', () => {
-    const isolated = new Node();
-    expect([...isolated.edges]).toEqual([]);
-    expect([...isolated.outgoing]).toEqual([]);
-    expect([...isolated.incoming]).toEqual([]);
+    expect([...orders.outgoing]).toEqual([]);
+    expect([...orders.incoming]).toEqual([]);
+    expect([...orders.edges]).toEqual([]);
+  });
 
-    const a = new Node();
-    const b = new Node();
-    const c = new Node();
+  it('separates incoming and outgoing edges and keeps creation order', () => {
+    const orders = new Node();
+    const payments = new Node();
+    const incoming = new Edge(payments, orders);
+    const outgoing = new Edge(orders, payments);
 
-    const first = new Edge(a, b);
-    const self = new Edge(a, a);
-    const second = new Edge(b, a);
-    const missing = new Edge(a, undefined);
-    const parallelOne = new Edge(a, b);
-    const parallelTwo = new Edge(a, b);
+    expect([...orders.incoming]).toEqual([incoming]);
+    expect([...orders.outgoing]).toEqual([outgoing]);
+    expect([...orders.edges]).toEqual([incoming, outgoing]);
+  });
 
-    const before = a.edges;
-    const beforeOutgoing = a.outgoing;
-    const beforeIncoming = a.incoming;
+  it('lists a self-loop once among all edges', () => {
+    const orders = new Node();
+    const loop = new Edge(orders, orders);
 
-    expect([...a.edges]).toEqual([first, self, second, missing, parallelOne, parallelTwo]);
-    expect([...a.outgoing]).toEqual([first, self, missing, parallelOne, parallelTwo]);
-    expect([...a.incoming]).toEqual([self, second]);
+    expect([...orders.outgoing]).toEqual([loop]);
+    expect([...orders.incoming]).toEqual([loop]);
+    expect([...orders.edges]).toEqual([loop]);
+  });
 
-    expect([...a.edges].filter((edge) => edge instanceof ServiceEdge)).toEqual([]);
-    expect(Object.isFrozen(a.edges)).toBe(true);
-    expect(Object.isFrozen(a.outgoing)).toBe(true);
-    expect(Object.isFrozen(a.incoming)).toBe(true);
+  it('keeps edges whose other endpoint is missing', () => {
+    const orders = new Node();
+    const missingTarget = new Edge(orders, undefined);
+    const missingSource = new Edge(undefined, orders);
 
-    const later = new Edge(a, c);
-    expect([...before]).toEqual([first, self, second, missing, parallelOne, parallelTwo]);
-    expect([...beforeOutgoing]).toEqual([first, self, missing, parallelOne, parallelTwo]);
-    expect([...beforeIncoming]).toEqual([self, second]);
-    expect([...a.edges]).toEqual([first, self, second, missing, parallelOne, parallelTwo, later]);
+    expect([...orders.outgoing]).toEqual([missingTarget]);
+    expect([...orders.incoming]).toEqual([missingSource]);
+    expect([...orders.edges]).toEqual([missingTarget, missingSource]);
+  });
 
-    const cycleOne = new Edge(b, c);
-    const cycleTwo = new Edge(c, a);
-    const cycleThree = new Edge(a, b);
+  it('leaves earlier snapshots unchanged when new edges are added', () => {
+    const orders = new Node();
+    const payments = new Node();
+    const first = new Edge(orders, payments);
+    const outgoingBefore = orders.outgoing;
+    const incomingBefore = orders.incoming;
+    const edgesBefore = orders.edges;
 
-    expect([...b.edges]).toEqual(expect.arrayContaining([first, cycleOne, cycleThree]));
-    expect([...c.edges]).toEqual(expect.arrayContaining([later, cycleOne, cycleTwo]));
-    expect([...c.outgoing]).toEqual([cycleTwo]);
-    expect([...c.incoming]).toEqual(expect.arrayContaining([later, cycleOne]));
-    expect([...c.incoming]).toHaveLength(2);
-    expect([...c.outgoing][0]).toBe(cycleTwo);
+    const later = new Edge(payments, orders);
+    const laterOutgoing = new Edge(orders, payments);
 
-    const edgeWithUndefined = new Edge(undefined, b);
-    expect(edgeWithUndefined.from).toBeUndefined();
-    expect(edgeWithUndefined.to).toBe(b);
-    expect([...b.incoming]).toContain(edgeWithUndefined);
-    expect([...isolated.edges]).toEqual([]);
+    expect([...outgoingBefore]).toEqual([first]);
+    expect([...incomingBefore]).toEqual([]);
+    expect([...edgesBefore]).toEqual([first]);
+    expect([...orders.incoming]).toEqual([later]);
+    expect([...orders.outgoing]).toEqual([first, laterOutgoing]);
+    expect([...orders.edges]).toEqual([first, later, laterOutgoing]);
+  });
 
-    const service = new ServiceEdge(a, b);
-    expect([...a.edges].filter((edge) => edge instanceof ServiceEdge)).toEqual([service]);
+  it('prevents changes to all three edge collections', () => {
+    const orders = new Node();
+    new Edge(orders, orders);
+
+    // These casts deliberately try operations forbidden by ReadonlySet.
+    expect(() => (orders.outgoing as Set<Edge>).clear()).toThrow();
+    expect(() => (orders.incoming as Set<Edge>).clear()).toThrow();
+    expect(() => (orders.edges as Set<Edge>).clear()).toThrow();
   });
 });

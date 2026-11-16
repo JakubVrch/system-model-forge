@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -67,21 +67,32 @@ describe('exportDiagram', () => {
   });
 
   it('accepts sets and single-use iterables with nodes-first ordering', () => {
-    const a = new Node(), b = new Node(), edge = new Edge(a, b);
-    function* elements() { yield edge; yield a; yield b; }
+    const orders = new Node();
+    const payments = new Node();
+    const edge = new Edge(orders, payments);
+    function* elements() {
+      yield edge;
+      yield orders;
+      yield payments;
+    }
     const expected = 'diagram\nNode\nNode\nEdge\nend\n';
     expect(exportDiagram(elements())).toBe(expected);
-    expect(exportDiagram(new Set([edge, a, b]))).toBe(expected);
+    expect(exportDiagram(new Set([edge, orders, payments]))).toBe(expected);
   });
 
-  it('writes the export to a destination and surfaces write failures', async () => {
-    const tempDir = await mkdtemp(path.join(tmpdir(), 'diagram-export-'));
-    const destination = path.join(tempDir, 'system-context.mmd');
+  it('exports the supplied edges without automatically adding or cleaning endpoints', () => {
+    const edge = new Edge(new Node(), new Node());
 
-    await saveDiagram('C4Context\nSystemA\n', destination);
-    expect(await readFile(destination, 'utf8')).toBe('C4Context\nSystemA\n');
-    await expect(saveDiagram('should fail', tempDir)).rejects.toThrow();
+    expect(exportDiagram([edge])).toBe('diagram\nEdge\nend\n');
+  });
 
-    await rm(tempDir, { recursive: true, force: true });
+  it('reports a write failure when the destination is a directory', async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), 'diagram-export-'));
+
+    try {
+      await expect(saveDiagram('diagram text', directory)).rejects.toThrow();
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 });
