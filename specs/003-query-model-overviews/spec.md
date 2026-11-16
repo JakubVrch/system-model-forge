@@ -12,7 +12,7 @@
 
 ### User Story 1 - Discover Connected Nodes (Priority: P1)
 
-A model author selects starting nodes from an exported collection, then supplies an edge filter that determines which outgoing edges to jump across. The filter evaluates each outgoing edge (for example, its type or properties) before traversal. Only accepted edges are followed to their target nodes; rejected edges are not followed. This discovers connected nodes without maintaining a separate target list.
+A model author selects starting nodes from an exported collection, chooses outgoing, incoming, or both directions, and supplies an edge filter. The filter evaluates each edge in the chosen direction (for example, its type or properties) before traversal. Only accepted edges are followed to the opposite endpoint relative to the starting node; rejected edges are not followed. This discovers connected nodes without maintaining a separate target list.
 
 **Why this priority**: Edge-driven discovery keeps selections aligned with the model and removes repeated traversal logic across domains.
 
@@ -22,8 +22,11 @@ A model author selects starting nodes from an exported collection, then supplies
 
 1. **Given** selected starting nodes with outgoing edges of different types or property values, **When** the author supplies an edge predicate, **Then** each outgoing edge is evaluated before the hop, only accepted edges are followed, and only their defined target nodes are returned. A node connected only by rejected edges is excluded even if it has the same type and properties as an included target.
 2. **Given** several matching edges reach one node, **When** targets are collected, **Then** that node occurs once, preserving original identity and first-discovery order.
-3. **Given** a reached node has further connections, **When** the query runs, **Then** it stops after one outgoing hop and does not follow those further connections.
+3. **Given** a reached node has further connections, **When** the query runs, **Then** it stops after one hop in the selected direction and does not follow those further connections.
 4. **Given** no selected nodes or matching edges, **When** the query runs, **Then** the result is empty and the model is unchanged.
+5. **Given** a start with incoming and outgoing edges, **When** incoming traversal is selected, **Then** only accepted incoming edges are followed to their defined source nodes.
+6. **Given** a start with interleaved incoming and outgoing edges and a self-loop, **When** both-direction traversal is selected, **Then** accepted incident edges reach the opposite endpoints in incident registration order, and the self-loop is evaluated once for that start.
+7. **Given** an edge between two distinct selected starts, **When** both-direction traversal runs, **Then** the predicate evaluates that edge once per start and both endpoints may be reached, with identity-based result deduplication.
 
 ### User Story 2 - Produce a Self-Contained Selection (Priority: P1)
 
@@ -86,8 +89,8 @@ The integration test imports the arrays exported by both service folders and ver
 ### Edge Cases
 
 - Empty selections, isolated nodes, and predicates rejecting every edge produce no reached nodes.
-- Undefined targets are skipped during traversal; edges with either undefined endpoint are removed during cleanup.
-- Incoming-only edges are not followed; cycles do not cause recursive traversal.
+- Undefined opposite endpoints are skipped during traversal; edges with either undefined endpoint are removed during cleanup.
+- Outgoing traversal excludes incoming-only edges; incoming traversal excludes outgoing-only edges; both follows either. Cycles do not cause recursive traversal.
 - Repeated references to one node produce one discovered node; distinct nodes with equal display labels remain distinct.
 - Parallel edges remain distinct even when their target is deduplicated.
 - A matching self-loop returns its node once and survives cleanup if that node is selected.
@@ -99,23 +102,24 @@ The integration test imports the arrays exported by both service folders and ver
 ### Functional Requirements
 
 - **FR-001**: Authors MUST be able to select nodes from mixed node/edge collections using existing host-language selection facilities and author-defined criteria.
-- **FR-002**: The framework MUST provide reusable one-hop outgoing traversal accepting an author-defined predicate over edges. The predicate MUST receive the outgoing edge so the author can filter by its type, properties, or endpoints. Traversal MUST evaluate the predicate before following that edge, jump only across accepted edges, and return their defined target nodes. Edge filtering MUST be independent of starting-node selection and MUST NOT be replaced by filtering target nodes after traversal. The operation MUST be independent of domain-specific node or edge types.
-- **FR-003**: Reached nodes MUST preserve source identity, omit duplicate references, and retain first-discovery order according to selected node order and outgoing edge order.
+- **FR-002**: The framework MUST provide reusable one-hop traversal with an explicit outgoing, incoming, or both direction and an author-defined edge predicate. The predicate MUST receive each edge in the selected direction before the hop so the author can filter by type, properties, or endpoints. Accepted outgoing edges reach their defined targets, incoming edges reach their defined sources, and both-direction traversal reaches the opposite endpoint relative to each start. Edge filtering MUST remain independent of starting-node selection and MUST NOT be replaced by filtering reached nodes after traversal. The operation MUST be domain-independent.
+- **FR-003**: Reached nodes MUST preserve source identity, omit duplicate references, and retain first-discovery order according to unique selected-start order and the chosen adjacency snapshot order. Both-direction traversal MUST use incident registration order and evaluate a self-loop once per start. An edge joining two selected starts is evaluated once per start; repeated start references are processed only once.
 - **FR-004**: The framework MUST provide reusable selection cleanup retaining nodes and retaining an edge only when both endpoints are defined and present by identity. Cleanup MUST preserve retained input order and distinct parallel edges.
 - **FR-005**: Querying, merging, cleaning, and exporting MUST leave source elements, exported collections, and adjacency unchanged.
 - **FR-006**: The integration example MUST compose independently exported node/edge collections, including edges to shared nodes, while preserving original element identities.
-- **FR-007**: Authors MUST be able to derive a selection by selecting starting nodes, following qualifying outgoing edges, merging reached nodes with an existing node/edge collection, and removing edges with endpoints outside the result. Each element reference MUST occur once in the merged selection.
+- **FR-007**: Authors MUST be able to derive a selection by selecting starting nodes, following qualifying edges in the chosen direction, merging reached nodes with an existing node/edge collection, and removing edges with endpoints outside the result. Each element reference MUST occur once in the merged selection.
 - **FR-008**: The integration example MUST include nodes reached from multiple starting nodes, nodes reached from only one starting node, and unrelated nodes to make inclusion and exclusion verifiable. Story 3 defines the concrete microservice test case.
 - **FR-009**: Integration coverage MUST assert exact derived selection membership, retained and excluded edges, shared source identities, independently specified expected diagram contents for each example selection, saved contents, and repeated-export stability.
-- **FR-010**: Automated coverage MUST verify empty results, undefined endpoints, incoming-only edges, parallel edges, self-loops, repeated references, equal-label distinct nodes, and source collection and adjacency preservation.
-- **FR-011**: Traversal MUST inspect only selected nodes' outgoing edges; disconnected elements MUST NOT increase predicate evaluations. Cleanup MUST support work proportional to selection size rather than repeatedly searching the full model for each edge.
+- **FR-010**: Automated coverage MUST verify all three directions, incident ordering, shared edges between starts, empty results, undefined endpoints, incoming-only edges, parallel edges, self-loops, repeated references, equal-label distinct nodes, and source collection and adjacency preservation.
+- **FR-011**: Traversal MUST inspect only selected nodes' adjacency in the chosen direction; disconnected elements MUST NOT increase predicate evaluations. Cleanup MUST support work proportional to selection size rather than repeatedly searching the full model for each edge.
 - **FR-012**: Existing direct traversal and export behavior MUST remain available. Cleanup MUST be explicitly requested rather than silently applied to all exports.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Node**: A graph element that can be selected, used as a traversal starting point, or reached as an edge target; domain-specific node types remain author-defined.
 - **Edge**: A directed connection between nodes with author-defined meaning and potentially undefined endpoints.
-- **Edge Predicate**: An author-defined filter evaluated on an outgoing edge before traversal; acceptance permits a hop across that edge, and rejection prevents it.
+- **Edge Predicate**: An author-defined filter evaluated on an edge in the chosen direction before traversal; acceptance permits a hop across that edge, and rejection prevents it.
+- **Traversal Direction**: Outgoing follows targets, incoming follows sources, and both follows opposite endpoints from incident edges; every mode is one hop.
 - **Selection**: An ordered collection of existing nodes and edges retaining source identity.
 - **Derived Selection**: A selection formed by merging existing elements with reached nodes and removing edges whose endpoints are not both included.
 
