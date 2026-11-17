@@ -2,11 +2,15 @@ import { registerIncoming, registerOutgoing } from './adjacency.ts';
 import { ModelElement } from './model-element.ts';
 import type { Node } from './node.ts';
 
-export class Edge extends ModelElement {
-  public readonly from: Node | undefined;
-  public readonly to: Node | undefined;
+/** A typed node reference that may be unresolved or absent. */
+export type Endpoint<T extends Node = Node> = T | undefined;
 
-  public constructor(from: Node | undefined, to: Node | undefined) {
+/** Preserve endpoint subtypes while retaining support for incomplete relationships. */
+export class Edge<From extends Node = Node, To extends Node = Node> extends ModelElement {
+  public readonly from: Endpoint<From>;
+  public readonly to: Endpoint<To>;
+
+  public constructor(from: Endpoint<From>, to: Endpoint<To>) {
     super();
     this.from = from;
     this.to = to;

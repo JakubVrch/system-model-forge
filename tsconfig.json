@@ -24,12 +24,6 @@
       ],
       "@core/*": [
         "./src/*.ts"
-      ],
-      "@metamodel": [
-        "./tests/integration/fixtures/microservice-environment/metamodel/index.ts"
-      ],
-      "@fixtures/*": [
-        "./tests/integration/fixtures/*/index.ts"
       ]
     },
     "rewriteRelativeImportExtensions": true
