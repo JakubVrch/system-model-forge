@@ -3,8 +3,13 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { exportDiagram, saveDiagram } from '@core';
-import { serviceA, serviceB } from '@fixtures/microservice-environment';
+import { findById, cleanSelection, readonlySet, exportDiagram, saveDiagram } from '@core';
+import { partition as root } from './fixtures/microservice-environment/microservice-environment.partition.ts';
+import { partition as databases } from './fixtures/microservice-environment/databases/databases.partition.ts';
+import { partition as topics } from './fixtures/microservice-environment/topics/topics.partition.ts';
+import { partition as services } from './fixtures/microservice-environment/services/services.partition.ts';
+import { partition as serviceA } from './fixtures/microservice-environment/services/service-a/service-a.partition.ts';
+import { partition as serviceB } from './fixtures/microservice-environment/services/service-b/service-b.partition.ts';
 
 const expectedA = `C4Component
 title Service A events
@@ -34,20 +39,67 @@ Rel(serviceB, topicB, "publish")
 
 describe('microservice environment', () => {
   it.each([
-    ['Service A events', serviceA.eventOverview, expectedA],
-    ['Service B events', serviceB.eventOverview, expectedB],
+    ['Service A events', serviceA.diagrams.eventOverview, expectedA],
+    ['Service B events', serviceB.diagrams.eventOverview, expectedB],
   ] as const)('saves the expected diagram for %s', async (title, overview, expected) => {
     const directory = await mkdtemp(path.join(tmpdir(), 'service-overviews-'));
 
     try {
-      const diagram = exportDiagram(overview, `C4Component\ntitle ${title}`, '');
+      const diagram = exportDiagram(overview.data, `C4Component\ntitle ${title}`, '');
       const destination = path.join(directory, 'events.mmd');
 
-      await saveDiagram(diagram, destination);
+      expect(diagram).toBe(overview.inNotation);
+      await saveDiagram(overview.inNotation, destination);
 
       expect(await readFile(destination, 'utf8')).toBe(expected);
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
   });
+
+
+  it('publishes local contributions without forwarding descendants or inherited vocabulary', () => {
+    expect(root.elements).toEqual({});
+    expect(root.diagrams).toEqual({});
+    expect(root.metamodel).toEqual({});
+    expect(services.elements).toEqual({});
+    expect(services.diagrams).toEqual({});
+    expect(services.metamodel.service).toBeTypeOf('function');
+    expect(serviceA.metamodel).toEqual({});
+    expect(serviceB.metamodel).toEqual({});
+  });
+
+  it.each([
+    ['Service A', serviceA, 'databaseA'],
+    ['Service B', serviceB, 'databaseB'],
+  ] as const)('%s uses shared vocabulary and published infrastructure instances', (_, child, databaseId) => {
+    const sharedTopic = findById(topics.elements.topics, 'shared');
+    const database = findById(databases.elements.databases, databaseId);
+    const service = [...child.elements.localModel].find(services.metamodel.service.is);
+    const relationships = [...child.elements.localModel];
+
+    expect(services.metamodel.service.is(service)).toBe(true);
+    expect(sharedTopic).toBeDefined();
+    expect(database).toBeDefined();
+    expect(relationships.some(edge =>
+      services.metamodel.eventFlow.is(edge) && edge.from === service && edge.to === sharedTopic,
+    )).toBe(true);
+    expect(relationships.some(edge =>
+      services.metamodel.databaseUsage.is(edge) && edge.from === service && edge.to === database,
+    )).toBe(true);
+    expect(child.diagrams.eventOverview.data.has(sharedTopic!)).toBe(true);
+  });
+
+  it('allows missing infrastructure references and omits dangling edges from a clean view', () => {
+    const service = services.metamodel.service('isolated', 'Isolated service');
+    const missingTopic = findById(topics.elements.topics, 'missing');
+    const missingDatabase = findById(databases.elements.databases, 'missing');
+    const flow = services.metamodel.eventFlow(service, missingTopic, 'publish');
+    const usage = services.metamodel.databaseUsage(service, missingDatabase);
+
+    expect(flow.to).toBeUndefined();
+    expect(usage.to).toBeUndefined();
+    expect([...cleanSelection(readonlySet([service, flow, usage]))]).toEqual([service]);
+  });
+
 });

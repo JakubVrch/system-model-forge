@@ -1,6 +1,7 @@
 import { expectTypeOf, it } from 'vitest';
+import { partition } from '../integration/fixtures/microservice-environment/services/services.partition.ts';
+const { service } = partition.metamodel;
 import { unionSet, readonlySet, Node, Edge } from '@core';
-import { service } from '@metamodel';
 
 it('infers the union of heterogeneous source element types without explicit arguments', () => {
   const node = new Node(), edge = new Edge(node, undefined);

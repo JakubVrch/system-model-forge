@@ -1,5 +1,32 @@
 # Research: Define Model Partitions
 
+## Current authoring decision (2026-11-17)
+
+The user revised the earlier mandatory-folder and parent-forwarding decisions.
+The convention below supersedes earlier layout/group requirements in this research
+record. Existing publication protection decisions remain unchanged.
+
+Each partition has one `[name].partition.ts` entry exporting a named `partition`.
+The folder tree is the sole hierarchy source: a partition's parent is the nearest
+ancestor folder containing a partition entry. Intermediate organizational folders
+need no declaration. Supporting folders use `_` prefixes (`_metamodel/`,
+`_elements/`, `_diagrams/`, or `_shared/`); their contents are excluded from future
+hierarchy discovery. Files themselves have no prefix: small contributions can live
+in `elements.ts` and `diagrams.ts`. Empty categories need no files or folders.
+
+Partition entries publish locally maintained contributions, not forwarded child
+exports. A locally maintained selection or diagram can reference foreign elements.
+All three contribution groups are optional inputs and normalize to frozen empty
+mappings in the output. Identity-only and vocabulary-only partitions are valid.
+Metamodel ownership is independent of hierarchy: imports can flow top-down,
+bottom-up, or across branches. Authors may expose independent vocabulary modules
+without importing assembled instances. Core does not infer or enforce ownership.
+
+There is no `children` registry. CLI discovery/build/publish and delegation contracts
+are future work; this change establishes their folder convention without implementing
+a scanner, contract engine, or placeholder contract files.
+
+
 ## Evidence and resolved questions
 
 Repository inspection covered `src/element/{define-element,node,edge,adjacency}.ts`, `src/collection/readonly-set.ts`, `src/export/export-diagram.ts`, existing integration fixtures, and `tests/type/define-element.test-d.ts`. A dedicated research agent independently reviewed publication immutability and adjacency. All planning unknowns are resolved below.
@@ -20,21 +47,24 @@ Repository inspection covered `src/element/{define-element,node,edge,adjacency}.
 
 **Alternatives considered**: `Object.freeze(new Set())` does not protect its collection entries; retaining caller-owned records permits later replacement. Cloning elements violates identity requirements.
 
-### 3. Runtime element protection and supported authoring contract
+### 3. Model-state responsibility (revised by user request)
 
-**Decision**: Add a partition-local publication helper; do not change `defineElement`'s existing shallow-freeze behavior globally. Before publication, inspect the complete supported own-data graph, then freeze it in place. Visit all own string and symbol data descriptors, including non-enumerable properties; use a visited set for shared references and cycles. Continue through children of already frozen objects. Follow edge endpoint references, but do not enumerate prototype getters or graph adjacency.
+**Decision**: Protect publication containers and membership only. Authors maintain
+immutable element state using native TypeScript mechanisms and model APIs. Pass
+model instances, endpoints, definitions, and guards through unchanged. Remove the
+recursive protection helper, payload restrictions, and preflight.
 
-Supported state consists of primitives, ordinary objects (including null-prototype records), arrays, and Node/Edge instances. Reject unsupported nested mutable values such as Map, Set, Date, typed arrays, custom metadata class instances, and own accessor properties with an export/property path. Top-level collection sets are handled by snapshotting, so they are not rejected. Metamodel values must be existing `defineElement` definitions; freeze their function surface and guard surface, preserving callable identity. Do not traverse callable intrinsic properties or shared class prototypes.
+**Rationale**: Trusted source authors control their model definitions. Publication
+should assemble exports without imposing new model semantics or repeatedly walking
+nested state during parent aggregation. `defineElement` retains its shallow freeze.
 
-Author-defined model methods, prototype accessors, and definitions must be pure with respect to published state. Private fields, closures, external mutable services, proxies, and prototype modification are not supported ways to store or mutate published state. This is a trusted source-authoring contract, not a sandbox for arbitrary executable objects. A shape inspection cannot prove function purity. Document this boundary explicitly rather than promising an impossible generic freeze of JavaScript execution.
-
-**Rationale**: Existing tests intentionally allow nested objects to remain mutable after `defineElement`. The partition boundary needs stronger guarantees without proxies or replacing graph objects. ECMAScript [SetIntegrityLevel](https://tc39.es/ecma262/2024/#sec-setintegritylevel) operates on own property integrity, so a bounded recursive policy and rejection of unsupported internal-slot state are necessary. Preflight prevents partial freezing for known unsupported shapes; arbitrary hostile proxies are outside the supported contract.
-
-**Alternatives considered**: Shallow freezing fails FR-006 for nested data. A universal proxy membrane changes identities and introduces complex method/collection semantics. Freezing shared prototypes changes unrelated code. Silently accepting unsupported mutable objects falsely claims protection.
+**Superseded alternative**: Recursive inspection and in-place freezing introduced
+unexpected alias/endpoint effects, payload restrictions, and redundant work. The user
+explicitly replaced that contract with author responsibility for model-state immutability.
 
 ### 4. Adjacency remains live
 
-**Decision**: Published own state and named set membership are immutable. Derived adjacency remains the existing live graph view, with immutable snapshots per read. Creating a new edge to an exported node can change a later adjacency snapshot, without changing the node's own fields or any partition export set. Test this explicitly.
+**Decision**: Authors maintain immutable model state; the framework protects named set membership. Derived adjacency remains the existing live graph view, with immutable snapshots per read. Creating a new edge to an exported node can change a later adjacency snapshot, without changing the node's own fields or any partition export set. Test this explicitly.
 
 **Rationale**: `adjacency.ts` stores connections in a private WeakMap and existing traversal behavior allows later edge registration. Graph composition must remain available under FR-013 and constitution II. Publication does not freeze the entire connected graph or capture a graph-wide version.
 
@@ -54,6 +84,6 @@ Services children import their parent's independent `metamodel/index.ts`, not it
 
 **Decision**: Use the repository's TypeScript checks, Vitest unit/integration/type tests, and build. Add focused publication tests, compile-time malformed declarations, and the existing microservice end-to-end example with six nested partitions including saved textual output and 100 repeated reads.
 
-**Rationale**: Tests must prove identity, input alias isolation, runtime nested protection, exact inference, and graph compatibility—not only frozen flags. No dependencies or benchmark framework are needed.
+**Rationale**: Tests must prove identity, input alias isolation, runtime container protection and unchanged model state, exact inference, and graph compatibility—not only frozen flags. No dependencies or benchmark framework are needed.
 
 **Alternatives considered**: Documentation-only examples do not validate the contract. Elapsed-time targets have no basis in the feature requirements; publication complexity is linear in exported membership and reachable supported own data.

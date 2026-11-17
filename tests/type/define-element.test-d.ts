@@ -1,4 +1,5 @@
-import { service, type ServiceNode, eventFlow, type EventFlow } from '@metamodel';
+import { partition, type ServiceNode, type EventFlow } from '../integration/fixtures/microservice-environment/services/services.partition.ts';
+const { service, eventFlow } = partition.metamodel;
 import { expectTypeOf, it } from 'vitest';
 import { defineElement, Node, Edge, type ElementDefinition, type GraphElement } from '@core';
 

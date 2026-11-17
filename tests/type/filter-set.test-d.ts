@@ -1,6 +1,7 @@
 import { expectTypeOf, it } from 'vitest';
+import { partition, type ServiceNode } from '../integration/fixtures/microservice-environment/services/services.partition.ts';
+const { service } = partition.metamodel;
 import { filterSet, readonlySet, Node, Edge, type GraphElement } from '@core';
-import { service, type ServiceNode } from '@metamodel';
 
 it('narrows set elements using generated metamodel guards', () => {
   const elements = readonlySet<GraphElement>([service('api', 'API'), new Edge(undefined, undefined)]);
