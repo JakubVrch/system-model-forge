@@ -94,8 +94,8 @@ describe('microservice environment', () => {
     const service = services.metamodel.service('isolated', 'Isolated service');
     const missingTopic = findById(topics.elements.topics, 'missing');
     const missingDatabase = findById(databases.elements.databases, 'missing');
-    const flow = services.metamodel.eventFlow(service, missingTopic, 'publish');
-    const usage = services.metamodel.databaseUsage(service, missingDatabase);
+    const flow = services.metamodel.eventFlow(service, missingTopic, 'event-flow', 'publish');
+    const usage = services.metamodel.databaseUsage(service, missingDatabase, 'databaseUsage');
 
     expect(flow.to).toBeUndefined();
     expect(usage.to).toBeUndefined();

@@ -2,7 +2,7 @@ import { defineElement, Node } from '@core';
 
 class ModuleNode extends Node {
   public constructor(public readonly id: string, public readonly name: string) {
-    super();
+    super(id);
   }
 
   public override toNotation(): string {

@@ -15,6 +15,7 @@ describe('public surface', () => {
       'exportDiagram',
       'filterSet',
       'findById',
+      'graphKind',
       'readonlySet',
       'saveDiagram',
       'unionSet',

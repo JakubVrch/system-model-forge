@@ -3,8 +3,8 @@ import type { ServiceNode } from './service-node.ts';
 import type { DatabaseNode } from '../../databases/databases.partition.ts';
 
 class DatabaseUsage extends Edge<ServiceNode, DatabaseNode> {
-  public constructor(from: Endpoint<ServiceNode>, to: Endpoint<DatabaseNode>, public readonly label: string = 'uses') {
-    super(from, to);
+  public constructor(from: Endpoint<ServiceNode>, to: Endpoint<DatabaseNode>, id: string, public readonly label: string = 'uses') {
+    super(from, to, id);
   }
 
   public override toNotation(): string {

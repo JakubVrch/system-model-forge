@@ -20,10 +20,10 @@
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "@core": [
-        "./src/index.ts"
+        "./src/core/index.ts"
       ],
       "@core/*": [
-        "./src/*.ts"
+        "./src/core/*.ts"
       ]
     },
     "rewriteRelativeImportExtensions": true

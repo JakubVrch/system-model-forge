@@ -17,12 +17,12 @@ export const localModel = readonlySet([
     service,
     moduleA1,
     moduleA2,
-    moduleComposition(service, moduleA1),
-    moduleComposition(service, moduleA2),
-    eventFlow(service, sharedTopic, 'publish'),
-    eventFlow(service, sharedTopic, 'subscribe'),
-    eventFlow(service, topicA, 'publish'),
-    databaseUsage(service, databaseA)
+    moduleComposition(service, moduleA1, 'service-a-contains-module-1'),
+    moduleComposition(service, moduleA2, 'service-a-contains-module-2'),
+    eventFlow(service, sharedTopic, 'service-a-publishes-shared', 'publish'),
+    eventFlow(service, sharedTopic, 'service-a-subscribes-shared', 'subscribe'),
+    eventFlow(service, topicA, 'service-a-publishes-topic', 'publish'),
+    databaseUsage(service, databaseA, 'service-a-uses-database')
 ])
 
 

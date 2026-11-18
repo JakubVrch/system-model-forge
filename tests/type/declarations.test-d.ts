@@ -10,9 +10,9 @@ import { exportDiagram, saveDiagram, type GraphElement } from '@core/export/expo
 
 describe('declarations', () => {
   it('matches the public contract', () => {
-    const from = new Node();
-    const to = new Node();
-    const edge = new Edge(from, to);
+    const from = new Node('node');
+    const to = new Node('node');
+    const edge = new Edge(from, to, 'relationship');
 
     expectTypeOf<Edge['from']>().toEqualTypeOf<Node | undefined>();
     expectTypeOf<Node['edges']>().toEqualTypeOf<ReadonlySet<Edge>>();
@@ -28,7 +28,7 @@ describe('declarations', () => {
     edge.from = from;
 
     // @ts-expect-error sets are readonly
-    from.edges.add(new Edge(from, to));
+    from.edges.add(new Edge(from, to, 'relationship'));
 
     // @ts-expect-error abstract class cannot be constructed
     new ModelElement();
@@ -36,29 +36,29 @@ describe('declarations', () => {
 });
 
  it('types direction-aware queries', () => {
-   const nodes: ReadonlySet<Node> = new Set([new Node()]);
+   const nodes: ReadonlySet<Node> = new Set([new Node('node')]);
    for (const direction of ['outgoing', 'incoming', 'both'] as const) {
      expectTypeOf(connectedNodes(nodes, edge => { expectTypeOf(edge).toEqualTypeOf<Edge>(); return true; }, direction)).toEqualTypeOf<ReadonlySet<Node>>();
    }
    // @ts-expect-error start arrays do not guarantee uniqueness
-   connectedNodes([new Node()], () => true, 'both');
+   connectedNodes([new Node('node')], () => true, 'both');
    // @ts-expect-error direction required
    connectedNodes(nodes, () => true);
    // @ts-expect-error unsupported direction
    connectedNodes(nodes, () => true, 'sideways');
    // @ts-expect-error edges are not starting nodes
-   connectedNodes(new Set([new Edge(undefined, undefined)]), () => true, 'both');
+   connectedNodes(new Set([new Edge(undefined, undefined, 'relationship')]), () => true, 'both');
  });
 
  it('types readonly selection cleanup', () => {
-   const selection: ReadonlySet<GraphElement> = new Set([new Node()]);
+   const selection: ReadonlySet<GraphElement> = new Set([new Node('node')]);
    // @ts-expect-error selection arrays do not guarantee uniqueness
-   cleanSelection([new Node()]);
+   cleanSelection([new Node('node')]);
    expectTypeOf(cleanSelection(selection)).toEqualTypeOf<ReadonlySet<GraphElement>>();
  });
 
 it('types protected sets and iterable exports', () => {
-  const elements = readonlySet<GraphElement>([new Node()]);
+  const elements = readonlySet<GraphElement>([new Node('node')]);
   expectTypeOf(elements).toEqualTypeOf<ReadonlySet<GraphElement>>();
   expectTypeOf(exportDiagram(elements)).toEqualTypeOf<string>();
   // @ts-expect-error mutation is not exposed

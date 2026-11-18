@@ -4,11 +4,11 @@ import { Node, Edge, cleanSelection, type GraphElement } from '@core';
 
 describe('cleanSelection', () => {
   it('keeps edges when both endpoints are selected, even if the edge comes first', () => {
-    const orders = new Node();
-    const payments = new Node();
-    const first = new Edge(orders, payments);
-    const parallel = new Edge(orders, payments);
-    const loop = new Edge(orders, orders);
+    const orders = new Node('node');
+    const payments = new Node('node');
+    const first = new Edge(orders, payments, 'relationship');
+    const parallel = new Edge(orders, payments, 'relationship');
+    const loop = new Edge(orders, orders, 'relationship');
     const selection = new Set<GraphElement>([first, orders, parallel, loop, payments]);
 
     const result = [...cleanSelection(selection)];
@@ -23,10 +23,10 @@ describe('cleanSelection', () => {
   });
 
   it('removes edges to nodes outside the selection', () => {
-    const orders = new Node();
-    const payments = new Node();
-    const missingTarget = new Edge(orders, payments);
-    const missingSource = new Edge(payments, orders);
+    const orders = new Node('node');
+    const payments = new Node('node');
+    const missingTarget = new Edge(orders, payments, 'relationship');
+    const missingSource = new Edge(payments, orders, 'relationship');
 
     const result = cleanSelection(new Set<GraphElement>([orders, missingTarget, missingSource]));
 
@@ -35,9 +35,9 @@ describe('cleanSelection', () => {
   });
 
   it('removes edges with undefined endpoints', () => {
-    const orders = new Node();
-    const missingTarget = new Edge(orders, undefined);
-    const missingSource = new Edge(undefined, orders);
+    const orders = new Node('node');
+    const missingTarget = new Edge(orders, undefined, 'relationship');
+    const missingSource = new Edge(undefined, orders, 'relationship');
 
     const result = cleanSelection(new Set<GraphElement>([orders, missingTarget, missingSource]));
 
@@ -46,10 +46,10 @@ describe('cleanSelection', () => {
   });
 
   it('keeps isolated nodes without adding unselected edges or endpoints', () => {
-    const orders = new Node();
-    const payments = new Node();
-    const isolated = new Node();
-    const edge = new Edge(orders, payments);
+    const orders = new Node('node');
+    const payments = new Node('node');
+    const isolated = new Node('node');
+    const edge = new Edge(orders, payments, 'relationship');
 
     expect([...cleanSelection(new Set<GraphElement>([edge]))]).toEqual([]);
     const nodes = cleanSelection(new Set([orders, payments, isolated]));
@@ -60,9 +60,9 @@ describe('cleanSelection', () => {
   });
 
   it('returns a protected result without changing the selection or model', () => {
-    const orders = new Node();
-    const payments = new Node();
-    const edge = new Edge(orders, payments);
+    const orders = new Node('node');
+    const payments = new Node('node');
+    const edge = new Edge(orders, payments, 'relationship');
     const selection = new Set<GraphElement>([orders, edge]);
 
     const result = cleanSelection(selection);

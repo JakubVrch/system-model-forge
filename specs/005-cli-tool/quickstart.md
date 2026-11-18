@@ -1,10 +1,10 @@
 # CLI Validation Quickstart
 
-This is the validation guide for the planned implementation. The CLI commands and new test files below become runnable after implementation; planning has not added the executable.
+This guide exercises the implemented CLI. Recorded local results and pending platform checks are in [validation.md](validation.md).
 
 ## Prerequisites and setup
 
-Use Node >=24 and install repository dependencies with its chosen package manager. Run from the repository root. The fixture migration must add diagram `fileExtension` values and author-assigned IDs on all elements as described in [core-contract.md](contracts/core-contract.md).
+Use Node >=24 and install repository dependencies with its chosen package manager. Run from the repository root. Fixtures include diagram `fileExtension` values and author-assigned IDs on all elements as described in [core-contract.md](contracts/core-contract.md).
 
 ```bash
 npm run typecheck

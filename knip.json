@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/knip/schema.json",
   "entry": [
-    "src/index.ts",
+    "src/core/index.ts",
     "tests/type/**/*.test-d.ts"
   ],
   "project": [
