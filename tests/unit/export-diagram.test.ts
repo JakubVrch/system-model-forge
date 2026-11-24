@@ -22,7 +22,7 @@ describe('exportDiagram', () => {
         public readonly id: string,
         public readonly name: string,
       ) {
-        super();
+        super(id);
       }
 
       public override toNotation(): string {
@@ -35,8 +35,9 @@ describe('exportDiagram', () => {
         from: Node,
         to: Node,
         public readonly name: string,
+        id: string,
       ) {
-        super(from, to);
+        super(from, to, id);
       }
 
       public override toNotation(): string {
@@ -49,7 +50,7 @@ describe('exportDiagram', () => {
 
     const systemA = new ServiceNode('SystemA', 'System A');
     const systemB = new ServiceNode('SystemB', 'System B');
-    const relationship = new ServiceEdge(systemA, systemB, 'REST');
+    const relationship = new ServiceEdge(systemA, systemB, 'REST', 'relationship');
 
     const output = exportDiagram(
       [relationship, systemA, systemB],
@@ -67,9 +68,9 @@ describe('exportDiagram', () => {
   });
 
   it('accepts sets and single-use iterables with nodes-first ordering', () => {
-    const orders = new Node();
-    const payments = new Node();
-    const edge = new Edge(orders, payments);
+    const orders = new Node('node');
+    const payments = new Node('node');
+    const edge = new Edge(orders, payments, 'relationship');
     function* elements() {
       yield edge;
       yield orders;
@@ -81,7 +82,7 @@ describe('exportDiagram', () => {
   });
 
   it('exports the supplied edges without automatically adding or cleaning endpoints', () => {
-    const edge = new Edge(new Node(), new Node());
+    const edge = new Edge(new Node('node'), new Node('node'), 'relationship');
 
     expect(exportDiagram([edge])).toBe('diagram\nEdge\nend\n');
   });

@@ -1,9 +1,11 @@
 {
   "$schema": "./node_modules/knip/schema.json",
   "entry": [
-    "src/index.ts",
-    "tests/type/**/*.test-d.ts"
+    "src/core/index.ts",
+    "tests/type/**/*.test-d.ts",
+    "tests/integration/fixtures/cli/**/*.partition.ts"
   ],
+  "ignoreDependencies": ["tsx"],
   "project": [
     "src/**/*.ts",
     "tests/**/*.ts"

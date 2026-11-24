@@ -1,10 +1,10 @@
-import { defineElement, Edge, type Endpoint } from '@core';
+import { defineElement, Edge, type Endpoint } from 'governed-model-core';
 import type { ServiceNode } from './service-node.ts';
 import type { TopicNode } from '../../topics/topics.partition.ts';
 
 class EventFlow extends Edge<ServiceNode, TopicNode> {
-  public constructor(from: Endpoint<ServiceNode>, to: Endpoint<TopicNode>, public readonly kind: 'publish' | 'subscribe') {
-    super(from, to);
+  public constructor(from: Endpoint<ServiceNode>, to: Endpoint<TopicNode>, id: string, public readonly kind: 'publish' | 'subscribe') {
+    super(from, to, id);
   }
 
   public override toNotation(): string {

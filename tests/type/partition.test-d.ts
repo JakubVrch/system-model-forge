@@ -2,7 +2,7 @@ import { expectTypeOf, it } from 'vitest';
 import { definePartition, defineElement, Node, Edge, readonlySet, type Partition, type PartitionDiagram } from '@core';
 
 class Item extends Node {
-  constructor(public id: string, public count = 1) { super(); }
+  constructor(public id: string, public count = 1) { super(id); }
 }
 const item = defineElement(Item);
 const link = defineElement(Edge);
@@ -10,7 +10,7 @@ const empty = { id: 'id', name: 'Name', elements: {}, diagrams: {}, metamodel: {
 
 it('preserves keys, member subtypes, heterogeneous definitions, and readonly collections', () => {
   const partition = definePartition({ ...empty,
-    elements: { items: new Set([item('one')]), links: readonlySet([link(undefined, undefined)]) },
+    elements: { items: new Set([item('one')]), links: readonlySet([link(undefined, undefined, 'relationship')]) },
     metamodel: { item, link },
   });
   expectTypeOf(partition.elements.items).toEqualTypeOf<ReadonlySet<Readonly<Item>>>();
@@ -20,7 +20,7 @@ it('preserves keys, member subtypes, heterogeneous definitions, and readonly col
   expectTypeOf([{} as unknown].filter(partition.metamodel.item.is)).toEqualTypeOf<Item[]>();
   const broad: Partition = partition;
   expectTypeOf(broad.id).toEqualTypeOf<string>();
-  const diagram: PartitionDiagram = { data: readonlySet(), inNotation: '' };
+  const diagram: PartitionDiagram = { data: readonlySet(), fileExtension: '.mmd', inNotation: '' };
   expectTypeOf(diagram.inNotation).toEqualTypeOf<string>();
   // @ts-expect-error exact keys
   partition.elements.missing;
@@ -63,15 +63,15 @@ it('rejects incomplete and incompatible declarations', () => {
 
 it('preserves diagram keys and member types while removing mutable input APIs', () => {
   const partition = definePartition({ ...empty, diagrams: {
-    items: { data: new Set([item('one')]), inNotation: 'text' },
-    edges: { data: readonlySet([link(undefined, undefined)]), inNotation: '' },
+    items: { data: new Set([item('one')]), fileExtension: '.mmd', inNotation: 'text' },
+    edges: { data: readonlySet([link(undefined, undefined, 'relationship')]), fileExtension: '.mmd', inNotation: '' },
   } });
   expectTypeOf(partition.diagrams.items).toEqualTypeOf<PartitionDiagram<Readonly<Item>>>();
   expectTypeOf(partition.diagrams.edges.data).toEqualTypeOf<ReadonlySet<Readonly<Edge>>>();
   // @ts-expect-error exact diagram keys
   partition.diagrams.missing;
   // @ts-expect-error immutable diagram mapping
-  partition.diagrams.items = { data: readonlySet(), inNotation: '' };
+  partition.diagrams.items = { data: readonlySet(), fileExtension: '.mmd', inNotation: '' };
   // @ts-expect-error immutable diagram data
   partition.diagrams.items.data = readonlySet();
   // @ts-expect-error immutable diagram text
@@ -83,13 +83,13 @@ it('preserves diagram keys and member types while removing mutable input APIs', 
   // @ts-expect-error native Set clear removed
   partition.diagrams.items.data.clear();
   // @ts-expect-error missing data
-  definePartition({ ...empty, diagrams: { bad: { inNotation: '' } } });
+  definePartition({ ...empty, diagrams: { bad: { fileExtension: '.mmd', inNotation: '' } } });
   // @ts-expect-error missing text
   definePartition({ ...empty, diagrams: { bad: { data: readonlySet() } } });
   // @ts-expect-error arrays are not diagram sets
-  definePartition({ ...empty, diagrams: { bad: { data: [], inNotation: '' } } });
+  definePartition({ ...empty, diagrams: { bad: { data: [], fileExtension: '.mmd', inNotation: '' } } });
   // @ts-expect-error text must be a string
-  definePartition({ ...empty, diagrams: { bad: { data: readonlySet(), inNotation: 1 } } });
+  definePartition({ ...empty, diagrams: { bad: { data: readonlySet(), fileExtension: '.mmd', inNotation: 1 } } });
 });
 
 it('infers exact empty groups and supports independent contributions', () => {
@@ -103,6 +103,16 @@ it('infers exact empty groups and supports independent contributions', () => {
   vocabulary.elements.items;
   const model = definePartition({ id: 'model', name: 'Model', elements: { items: new Set([item('one')]) } });
   expectTypeOf(model.elements.items).toEqualTypeOf<ReadonlySet<Readonly<Item>>>();
-  const view = definePartition({ id: 'view', name: 'View', diagrams: { overview: { data: new Set([item('one')]), inNotation: '' } } });
+  const view = definePartition({ id: 'view', name: 'View', diagrams: { overview: { data: new Set([item('one')]), fileExtension: '.mmd', inNotation: '' } } });
   expectTypeOf(view.diagrams.overview.data).toEqualTypeOf<ReadonlySet<Readonly<Item>>>();
+});
+
+it('requires readonly diagram extensions', () => {
+  // @ts-expect-error fileExtension is required
+  const missing: PartitionDiagram = { data: readonlySet(), inNotation: '' };
+  void missing;
+  const diagram: PartitionDiagram = { data: readonlySet(), inNotation: '', fileExtension: '.mmd' };
+  expectTypeOf(diagram.fileExtension).toEqualTypeOf<string>();
+  // @ts-expect-error extension is readonly
+  diagram.fileExtension = '.txt';
 });

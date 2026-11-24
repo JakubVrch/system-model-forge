@@ -14,3 +14,4 @@ export { unionSet } from './collection/union-set.ts';
 export { definePartition } from './partition/define-partition.ts';
 export type { Partition, PartitionDiagram } from './partition/define-partition.ts';
 export { findById } from './query/find-by-id.ts';
+export type { ElementInfo } from './element/model-element.ts';

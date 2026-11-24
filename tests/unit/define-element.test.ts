@@ -3,13 +3,13 @@ import { defineElement, Node, Edge } from '@core';
 
 class ServiceNode extends Node {
   public constructor(public id: string, public name = id, public readonly options = { enabled: true }) {
-    super();
+    super(id);
   }
 }
 
 class EventEdge extends Edge {
-  public constructor(from: Node, to: Node, public readonly kind: 'read' | 'write', ...labels: string[]) {
-    super(from, to);
+  public constructor(from: Node, to: Node, id: string, public readonly kind: 'read' | 'write', ...labels: string[]) {
+    super(from, to, id);
     this.labels = labels;
   }
   public readonly labels: string[];
@@ -43,9 +43,9 @@ describe('defineElement', () => {
 
   it('finishes constructing an edge before freezing it', () => {
     const eventFlow = defineElement(EventEdge);
-    const from = new Node();
-    const to = new Node();
-    const edge = eventFlow(from, to, 'write', 'audit', 'async');
+    const from = new Node('node');
+    const to = new Node('node');
+    const edge = eventFlow(from, to, 'flow', 'write', 'audit', 'async');
     expect(edge.kind).toBe('write');
     expect(edge.labels).toEqual(['audit', 'async']);
     expect(Object.isFrozen(edge)).toBe(true);
@@ -94,7 +94,7 @@ describe('defineElement', () => {
     const error = new Error('invalid model');
     class Invalid extends Node {
       public constructor() {
-        super();
+        super('invalid');
         throw error;
       }
     }

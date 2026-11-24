@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { findById, cleanSelection, readonlySet, exportDiagram, saveDiagram } from '@core';
+import { findById, cleanSelection, readonlySet, exportDiagram, saveDiagram } from 'governed-model-core';
 import { partition as root } from './fixtures/microservice-environment/microservice-environment.partition.ts';
 import { partition as databases } from './fixtures/microservice-environment/databases/databases.partition.ts';
 import { partition as topics } from './fixtures/microservice-environment/topics/topics.partition.ts';
@@ -94,8 +94,8 @@ describe('microservice environment', () => {
     const service = services.metamodel.service('isolated', 'Isolated service');
     const missingTopic = findById(topics.elements.topics, 'missing');
     const missingDatabase = findById(databases.elements.databases, 'missing');
-    const flow = services.metamodel.eventFlow(service, missingTopic, 'publish');
-    const usage = services.metamodel.databaseUsage(service, missingDatabase);
+    const flow = services.metamodel.eventFlow(service, missingTopic, 'event-flow', 'publish');
+    const usage = services.metamodel.databaseUsage(service, missingDatabase, 'databaseUsage');
 
     expect(flow.to).toBeUndefined();
     expect(usage.to).toBeUndefined();

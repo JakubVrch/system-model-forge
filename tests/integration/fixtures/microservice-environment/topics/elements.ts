@@ -1,5 +1,5 @@
 import { topic } from './_metamodel/topic-node.ts';
-import { readonlySet } from '@core';
+import { readonlySet } from 'governed-model-core';
 
 const sharedTopic = topic('shared', 'Shared topic');
 const topicA = topic('topicA', 'Topic A');

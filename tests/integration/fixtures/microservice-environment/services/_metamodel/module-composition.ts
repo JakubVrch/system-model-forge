@@ -1,10 +1,10 @@
-import { defineElement, Edge, type Endpoint } from '@core';
+import { defineElement, Edge, type Endpoint } from 'governed-model-core';
 import type { ServiceNode } from './service-node.ts';
 import type { ModuleNode } from './module-node.ts';
 
 class ModuleComposition extends Edge<ServiceNode, ModuleNode> {
-  public constructor(from: Endpoint<ServiceNode>, to: Endpoint<ModuleNode>, public readonly label: string = 'contains') {
-    super(from, to);
+  public constructor(from: Endpoint<ServiceNode>, to: Endpoint<ModuleNode>, id: string, public readonly label: string = 'contains') {
+    super(from, to, id);
   }
 
   public override toNotation(): string {

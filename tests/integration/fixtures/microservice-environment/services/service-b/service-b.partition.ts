@@ -1,4 +1,4 @@
-import { definePartition } from '@core';
+import { definePartition } from 'governed-model-core';
 import { localModel } from './elements.ts';
 import * as diagrams from './diagrams.ts';
 
