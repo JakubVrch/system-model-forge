@@ -1,4 +1,4 @@
-import { definePartition } from '@core';
+import { definePartition } from 'governed-model-core';
 import { databases } from './elements.ts';
 import { database } from './_metamodel/database-node.ts';
 

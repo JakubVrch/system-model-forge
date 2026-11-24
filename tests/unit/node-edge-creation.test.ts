@@ -5,25 +5,25 @@ import { Node } from '@core/element/node';
 
 describe('element creation', () => {
   it('creates nodes and edges with default notation', () => {
-    const orders = new Node();
-    const payments = new Node();
+    const orders = new Node('node');
+    const payments = new Node('node');
 
-    expect(new Node().toNotation()).toBe('Node');
-    expect(new Edge(orders, payments).toNotation()).toBe('Edge');
+    expect(new Node('node').toNotation()).toBe('Node');
+    expect(new Edge(orders, payments, 'relationship').toNotation()).toBe('Edge');
 
-    const edge = new Edge(orders, payments);
+    const edge = new Edge(orders, payments, 'relationship');
     expect(edge.from).toBe(orders);
     expect(edge.to).toBe(payments);
   });
 
   it('allows missing endpoints', () => {
-    const undefinedEdge = new Edge(undefined, undefined);
+    const undefinedEdge = new Edge(undefined, undefined, 'relationship');
     expect(undefinedEdge.from).toBeUndefined();
     expect(undefinedEdge.to).toBeUndefined();
   });
 
   it('lets subclasses provide their own notation', () => {
-    const orders = new Node();
+    const orders = new Node('node');
 
     class ServiceNode extends Node {
       public override toNotation(): string {
@@ -37,8 +37,8 @@ describe('element creation', () => {
       }
     }
 
-    const serviceNode = new ServiceNode();
-    const serviceEdge = new ServiceEdge(serviceNode, orders);
+    const serviceNode = new ServiceNode('service');
+    const serviceEdge = new ServiceEdge(serviceNode, orders, 'relationship');
 
     expect(serviceNode instanceof Node).toBe(true);
     expect(serviceEdge instanceof Edge).toBe(true);

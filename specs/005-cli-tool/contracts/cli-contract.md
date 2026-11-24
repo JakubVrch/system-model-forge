@@ -20,7 +20,7 @@ Shared options:
 | `--path <glob>` | Repeatable source-root-relative entry-path pattern including filename |
 | `--format pretty\|json` | Default `pretty`; JSON structure is in output-contract.md |
 | `--tsconfig <file>` | Explicit source project tsconfig; otherwise nearest tsconfig upward from root, or ordinary loader defaults if none exists |
-| `--help`, `-h` | Command or top-level help without loading source |
+| `--help`, `-h` | General help without loading source, with or without a command |
 | `--version` | Installed package version without loading source |
 
 Paths supplied as root, out, or tsconfig resolve relative to the caller's working directory. Reject unknown options, unexpected positional arguments, command-inapplicable options, repeated singleton options, empty selectors, and invalid limits. Both `--option value` and `--option=value` are supported. A recognized JSON format request must be honored even when another argument is invalid. Help/version with JSON produce the standard envelope with help/version data; an unsupported format produces a plain concise error because no supported representation was selected. All output is plain, without ANSI controls or interactive prompts.
@@ -41,7 +41,7 @@ No selectors plus no discovered partitions returns a successful empty result. A 
 
 No export-key filters means all element and diagram exports, separately identified. `--elements` and `--diagram` select exact keys in their respective groups; their results form a union. Every requested key must occur in at least one selected partition; absence from other partitions is normal. Empty sets remain visible.
 
-Business attributes come from getElementInfo(), with its automatic default or author override. IDs are mandatory metadata and are not selected using --property. `--property` projects attributes without removing provenance, kind, modelType, response-local ref, business identity summary, or edge endpoints. Each requested attribute must be returned by at least one member of the full selected exports; validate before limiting. With empty selections, explicit property requests have no matching member and fail; without projection, empty selections succeed.
+Business attributes come from getElementInfo(), with its automatic default or author override. IDs are mandatory metadata and are not selected using --property. `--property` projects attributes without removing provenance, kind, modelType, authored identity, or edge endpoints. Each requested attribute must be returned by at least one member of the full selected exports; validate before limiting. With empty selections, explicit property requests have no matching member and fail; without projection, empty selections succeed.
 
 `--limit N` applies independently to node and edge groups in each export. Preserve source iteration order inside those groups. Full totals, returned counts, and omitted counts are always reported. Property names are ordered ordinally, including explicit projection. Repeated selector values are deduplicated. No silent value truncation occurs; multiline cells wrap/escape visibly and very wide tables may extend beyond terminal width.
 

@@ -1,8 +1,8 @@
-import { defineElement, Node } from '@core';
+import { defineElement, Node } from 'governed-model-core';
 
 class TopicNode extends Node {
   public constructor(public readonly id: string, public readonly name: string) {
-    super();
+    super(id);
   }
 
   public override toNotation(): string {

@@ -1,5 +1,5 @@
 import { registerIncoming, registerOutgoing } from './adjacency.ts';
-import { ModelElement } from './model-element.ts';
+import { ModelElement, snapshotElementInfo, type ElementInfo } from './model-element.ts';
 import type { Node } from './node.ts';
 
 /** A typed node reference that may be unresolved or absent. */
@@ -10,7 +10,7 @@ export class Edge<From extends Node = Node, To extends Node = Node> extends Mode
   public readonly from: Endpoint<From>;
   public readonly to: Endpoint<To>;
 
-  public constructor(from: Endpoint<From>, to: Endpoint<To>) {
+  public constructor(from: Endpoint<From>, to: Endpoint<To>, public readonly id: string) {
     super();
     this.from = from;
     this.to = to;
@@ -22,6 +22,10 @@ export class Edge<From extends Node = Node, To extends Node = Node> extends Mode
     if (to !== undefined) {
       registerIncoming(this, to);
     }
+  }
+
+  public override getElementInfo(): ElementInfo {
+    return snapshotElementInfo(this, ['from', 'to']);
   }
 
   public toNotation(): string {

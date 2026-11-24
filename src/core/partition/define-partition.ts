@@ -7,6 +7,7 @@ import type { ModelElement } from '../element/model-element.ts';
 export interface PartitionDiagram<T extends GraphElement = GraphElement> {
   readonly data: ReadonlySet<T>;
   readonly inNotation: string;
+  readonly fileExtension: string;
 }
 
 type ElementExports = Record<string, ReadonlySet<GraphElement>>;
@@ -82,7 +83,7 @@ export function definePartition<
   for (const key of Object.keys(input.diagrams ?? {})) {
     const source = input.diagrams![key]!;
     const data = readonlySet(source.data);
-    diagrams[key] = Object.freeze({ data, inNotation: source.inNotation });
+    diagrams[key] = Object.freeze({ data, inNotation: source.inNotation, fileExtension: source.fileExtension });
   }
   for (const key of Object.keys(input.metamodel ?? {})) {
     metamodel[key] = input.metamodel![key]!;

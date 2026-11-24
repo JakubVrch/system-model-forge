@@ -1,6 +1,13 @@
 node_modules/
 dist/
 .specify/integrations/.cache/
-build/
+/build/
 *.log
 .env*
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
+coverage/

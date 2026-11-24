@@ -19,11 +19,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
+      "@cli/*": ["./src/cli/*.ts"],
       "@core": [
-        "./src/index.ts"
+        "./src/core/index.ts"
       ],
       "@core/*": [
-        "./src/*.ts"
+        "./src/core/*.ts"
       ]
     },
     "rewriteRelativeImportExtensions": true

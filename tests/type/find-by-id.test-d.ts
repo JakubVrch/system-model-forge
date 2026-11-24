@@ -8,8 +8,8 @@ it('preserves element types and requires an ID matching the collection', () => {
   expectTypeOf(findById(new Set([{ id: 1 }]), 1)).toEqualTypeOf<{ id: number } | undefined>();
   // @ts-expect-error lookup ID must match the declared ID type
   findById(values, 1);
-  // @ts-expect-error elements must declare an ID; core Node does not impose one
-  findById(new Set([new Node()]), 'one');
+  // core Node now has a required string ID
+  findById(new Set([new Node('node')]), 'one');
   // @ts-expect-error query accepts a set
   findById([item], 'one');
 });

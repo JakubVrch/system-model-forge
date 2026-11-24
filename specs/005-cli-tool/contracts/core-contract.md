@@ -26,16 +26,16 @@ For EventFlow, existing `kind` is discovered automatically, yielding `{ kind: 'p
 
 ## Graph-kind and model-type recognition
 
-Retain a versioned global symbol `graphKind`, backed by `Symbol.for('governed-model-core.graphKind.v1')`, exposed as an immutable non-enumerable data property on Node/Edge prototypes with `{version:1,kind:'node'|'edge'}`. This allows the compiled CLI to recognize objects constructed through source aliases without depending on its own constructor identity. Unknown protocol versions fail clearly.
+The CLI recognizes graph elements through inheritance from `Node` or `Edge`. Authored models import these classes from the same built `governed-model-core` package as the CLI. `GraphElement` is the TypeScript union `Node | Edge`.
 
 Use the actual class constructor's data-property name as the modelType display value for authored subclasses, or null for base Node/Edge or unavailable names. Read descriptors without invoking getters. This is a descriptive class name, not a stable domain identifier; author-supplied `id` remains identity. No inspection profile, constructor registration, or extra attribute-list API is needed.
 
 ## Package layout
 
-All library modules live under `src/core/`, including collection, element, export, partition, query, and the public `index.ts` barrel. `src/cli/` is a sibling and core has no dependency on it. Package-root exports resolve to `dist/core/index.js` and `dist/core/index.d.ts`; the source `@core` alias resolves to `src/core/index.ts`. Public import names and existing exported symbols remain unchanged.
+All library modules live under `src/core/`, including collection, element, export, partition, query, and the public `index.ts` barrel. `src/cli/` is a sibling and core has no dependency on it. Package-root exports resolve to `dist/core/index.js` and `dist/core/index.d.ts`; the source `@core` alias resolves to `src/core/index.ts`. The exploratory `graphKind` export has been removed.
 
 ## Compatibility and validation
 
 Required element IDs and diagram `fileExtension` are breaking authoring changes. Migrate all existing node/edge constructors and fixtures that lack IDs, along with diagram declarations. Document release impact without publishing or choosing a release number in this stage. Existing business fields need no metadata migration.
 
-Test automatic field discovery, framework exclusions, inherited constructor fields, skipped getters, private/non-enumerable storage, custom method overrides, invalid method results, author-assigned IDs, duplicate-ID preservation, factory inference/freezing, and source/compiled graph recognition. Verify endpoint identity and existing graph/adjacency behavior after constructor migration.
+Test automatic field discovery, framework exclusions, inherited constructor fields, skipped getters, private/non-enumerable storage, custom method overrides, invalid method results, author-assigned IDs, duplicate-ID preservation, factory inference/freezing, and inheritance through the built package. Verify endpoint identity and existing graph/adjacency behavior after constructor migration.

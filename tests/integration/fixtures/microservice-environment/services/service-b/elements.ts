@@ -1,4 +1,4 @@
-import { findById, readonlySet } from '@core';
+import { findById, readonlySet } from 'governed-model-core';
 import { partition as services } from '../services.partition.ts';
 import { partition as topics } from '../../topics/topics.partition.ts';
 import { partition as databases } from '../../databases/databases.partition.ts';
@@ -16,9 +16,9 @@ export const localModel = readonlySet([
   service,
   moduleB1,
   moduleB2,
-  moduleComposition(service, moduleB1),
-  moduleComposition(service, moduleB2),
-  eventFlow(service, sharedTopic, 'subscribe'),
-  eventFlow(service, topicB, 'publish'),
-  databaseUsage(service, databaseB),
+  moduleComposition(service, moduleB1, 'service-b-contains-module-1'),
+  moduleComposition(service, moduleB2, 'service-b-contains-module-2'),
+  eventFlow(service, sharedTopic, 'service-b-subscribes-shared', 'subscribe'),
+  eventFlow(service, topicB, 'service-b-publishes-topic', 'publish'),
+  databaseUsage(service, databaseB, 'service-b-uses-database'),
 ]);

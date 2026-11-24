@@ -35,7 +35,7 @@ Pre-research gate: PASS. Post-design gate: PASS. No exceptions requested.
 | Principle | Design evidence |
 | --- | --- |
 | I. Model-as-Source | Entries and automatic business-attribute defaults and overrides remain authored source; output is disposable. |
-| II. Graph-First | Source object identity and node/edge membership remain intact; reference DTOs do not mutate graphs or resolve missing endpoints. |
+| II. Graph-First | Source object identity and node/edge membership remain intact; endpoint summaries do not mutate graphs or resolve missing endpoints. |
 | III. Package-Bounded | Core publishes small typed contracts; CLI uses entry modules and native imports, not internal author files. |
 | IV. Immutable Shared Exports | Publication shells remain frozen; inspection uses business-attribute snapshots without mutating elements or selections. Authors keep overrides pure. |
 | V. Deterministic Builds | Ordered selection, exact text, deterministic last-write-wins behavior, repeatability tests, preflight plus honest partial failure. |
@@ -68,14 +68,10 @@ specs/005-cli-tool/
 ```text
 src/
 ├── cli/
-│   ├── main.ts              # executable, parse/dispatch/render, exit handling
-│   ├── options.ts           # option definitions and validation
-│   ├── discover.ts          # directory inventory, ancestry, path filters
-│   ├── child.ts             # tsx-enabled entry loading, normalization, IPC
-│   ├── select.ts            # ID/name and export selectors
-│   ├── inspect.ts           # business method results, references, limits
-│   ├── build.ts             # destination preflight and sequential writes
-│   ├── format.ts            # pretty tables/summaries from normalized DTOs
+│   ├── main.ts              # executable, dispatch, exit handling
+│   ├── arguments/           # option definitions, parsing, and help text
+│   ├── source/              # discovery, source child and IPC, selection and model inspection
+│   ├── output/              # pretty formatting and filesystem writes
 │   └── result.ts            # internal request/result types
 └── core/
     ├── collection/          # existing readonly-set and union-set modules
@@ -110,7 +106,7 @@ tests/
 
 ## Phase 0: Research Results
 
-[research.md](research.md) resolves source loading, configuration selection, module identity, stdout isolation, glob grammar, automatic business-attribute defaults and overrides, reference encoding, extension migration, and package delivery. No unresolved clarification remains. Research records the accepted stored-field convention and its visibility limitations and separate per-partition loader namespaces.
+[research.md](research.md) resolves source loading, configuration selection, module identity, stdout isolation, glob grammar, automatic business-attribute defaults and overrides, authored identity and endpoint metadata, extension migration, and package delivery. No unresolved clarification remains. Research records the accepted stored-field convention and its visibility limitations and separate per-partition loader namespaces.
 
 ## Phase 1: Design and Validation
 
@@ -120,7 +116,7 @@ Implementation sequence for later task generation:
 
 1. Relocate the existing library to `src/core` and update aliases, imports, build targets, and package entry points; verify existing behavior. Add identity/business-method/kind and required-extension contract tests; implement constructor and extension migration while retaining construction inference/freezing.
 2. Add command parsing/discovery/filter tests and source child loading with alias/shared-identity and stdout isolation checks.
-3. Implement partition summaries, business-attribute inspection, reference encoding, limits, and pretty/JSON formatting.
+3. Implement partition summaries, business-attribute inspection, authored identity and endpoint metadata, limits, and pretty/JSON formatting.
 4. Implement dry-run/preflight and sequential overwrite build with minimal summary and partial failure behavior.
 5. Wire the package binary and migrate all examples; validate compiled and installed CLI workflows, document compatibility changes.
 

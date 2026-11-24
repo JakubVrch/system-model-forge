@@ -1,4 +1,4 @@
-import { definePartition } from '@core';
+import { definePartition } from 'governed-model-core';
 
 // The folder establishes this partition's children; no contributions are forwarded.
 export const partition = definePartition({

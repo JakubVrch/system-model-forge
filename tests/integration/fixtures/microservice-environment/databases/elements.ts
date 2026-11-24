@@ -1,5 +1,5 @@
 import { database } from './_metamodel/database-node.ts';
-import { readonlySet } from '@core';
+import { readonlySet } from 'governed-model-core';
 
 const databaseA = database('databaseA', 'Database A');
 const databaseB = database('databaseB', 'Database B');
