@@ -20,9 +20,9 @@ describe('exportDiagram', () => {
     class ServiceNode extends Node {
       public constructor(
         public readonly id: string,
-        public readonly name: string,
+        name: string,
       ) {
-        super(id);
+        super(id, name);
       }
 
       public override toNotation(): string {
@@ -34,10 +34,10 @@ describe('exportDiagram', () => {
       public constructor(
         from: Node,
         to: Node,
-        public readonly name: string,
+        name: string,
         id: string,
       ) {
-        super(from, to, id);
+        super(from, to, id, name);
       }
 
       public override toNotation(): string {
@@ -68,9 +68,9 @@ describe('exportDiagram', () => {
   });
 
   it('accepts sets and single-use iterables with nodes-first ordering', () => {
-    const orders = new Node('node');
-    const payments = new Node('node');
-    const edge = new Edge(orders, payments, 'relationship');
+    const orders = new Node('node', 'Node');
+    const payments = new Node('node', 'Node');
+    const edge = new Edge(orders, payments, 'relationship', 'Relationship');
     function* elements() {
       yield edge;
       yield orders;
@@ -82,7 +82,7 @@ describe('exportDiagram', () => {
   });
 
   it('exports the supplied edges without automatically adding or cleaning endpoints', () => {
-    const edge = new Edge(new Node('node'), new Node('node'), 'relationship');
+    const edge = new Edge(new Node('node', 'Node'), new Node('node', 'Node'), 'relationship', 'Relationship');
 
     expect(exportDiagram([edge])).toBe('diagram\nEdge\nend\n');
   });

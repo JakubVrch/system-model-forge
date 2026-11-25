@@ -59,7 +59,7 @@ Follow the constitution's test-first workflow for model identity, navigation, an
 | `src/core/element/` | Add canonical names to the model contract, constructors, and attribute snapshot. Preserve endpoint typing and adjacency. |
 | `src/cli/arguments/`, `src/cli/main.ts` | Register trace, help, and version as commands. Parse the trace ID and depth and report unsupported options through the normal error path. |
 | `src/cli/source/`, `src/cli/commands/` | Run root lookup and traversal in the source child. Share identity and type extraction with listing. Extend result routing and IPC validation. |
-| `src/cli/result.ts`, `src/cli/output/` | Carry required names and ordered trace data, render the terminal tree, and document the JSON fields. |
+| `src/cli/commands/trace-element/result.ts`, `src/cli/commands/trace-element/format.ts`, `src/cli/output/result.ts` | Define ordered trace data, render the terminal tree, and wrap results in the shared JSON envelope. |
 | `tests/unit/`, `tests/type/` | Migrate constructor calls and assertions. Cover required names, CLI parsing, deterministic traversal, and presentation. |
 | `tests/integration/` | Use the existing built-CLI harness and service environment fixtures for trace and name checks. Migrate other fixtures supporting existing regression tests. Move fixture display labels into core names. In the service environment, migrate `ModuleComposition` and `DatabaseUsage` and use their names in the same diagram text. |
 | `README.md` | Update constructor examples, migration guidance, command options, and JSON contract notes. |

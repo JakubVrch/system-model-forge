@@ -29,7 +29,7 @@ Example of the default output:
 
 ```text
 OrderService: Order Service (orders)
-├── ServiceCall: Primary Payment (payment-primary) -> To 
+├── ServiceCall: Primary Payment (payment-primary) -> To
 │   └── PaymentService: Payment Service (payments)
 ├── ServiceCall: Fallback Payment (payment-fallback) -> To
 │   └── PaymentService: Payment Service (payments)
@@ -90,7 +90,7 @@ A model author assigns a name to every node and edge. Reviewers see that same na
 1. **Given** a node and an edge, **When** the author creates them, **Then** each requires a readonly string name alongside its existing ID. A model author may reuse a name on distinct elements.
 2. **Given** a named edge whose endpoint is outside the selected export, **When** it is listed, **Then** the edge and its present endpoints show their authored names in both formats.
 3. **Given** an element whose business-attribute customization omits or supplies a different name, **When** any CLI element view displays it, **Then** its first-class name is used.
-4. **Given** a listing projected with `--property name` or with a different attribute filter, **When** it is run, **Then** the projection succeeds and the canonical name remains visible as identity metadata.
+4. **Given** a listing projected with a business attribute, **When** it is run, **Then** the authored ID and name remain visible in identity. The listing rejects `--property id` and `--property name` as unknown business attributes.
 
 ### Edge Cases
 
@@ -103,19 +103,19 @@ A model author assigns a name to every node and edge. Reviewers see that same na
 
 ### Functional Requirements
 
-- **FR-001**: The CLI MUST expose `trace-element <element-id>` and require exactly one nonempty positional ID for a trace. The separate `model-forge help trace-element` command MUST document trace options, formats, lookup scope, and direction labels. `model-forge version` MUST report the CLI version. Both commands MUST run without loading model sources.
+- **FR-001**: The CLI MUST expose `trace-element <element-id>` and require exactly one nonempty positional ID for a trace. The single `model-forge help` command MUST document trace options, formats, lookup scope, and direction labels in the same help output as the other commands. `model-forge version` MUST report the CLI version. Both commands MUST run without loading model sources.
 - **FR-002**: The command MUST accept `--root`, `--partition-id`, `--partition-name`, `--path`, `--format`, and `--tsconfig` with the defaults and selection semantics defined in feature 005.
 - **FR-003**: The command MUST resolve an exact, case-sensitive ID among nodes and relationships published in element exports and diagram selections of the selected partitions. It MUST show one tree per distinct matching object, ordered by first occurrence across the selected exports. Repeated publication of the same object MUST yield one tree. The command MUST fail if no object matches.
 - **FR-004**: The command MUST show each matching element as a root and show a separate branch under each expanded element for each relationship and direction. `To` identifies the outgoing connection to a target and `From` identifies the incoming connection from a source. For a relationship root, these labels identify its own target and source respectively.
 - **FR-005**: Output MUST include only existing relationships with present related elements, including connections outside the lookup scope that are available in the loaded model. Every relationship branch MUST contain exactly one related element. Parallel edges MUST remain separate branches.
 - **FR-006**: The command MUST accept optional `--depth <positive-integer>` with a default of one. Moving from an element to a related element counts as one hop, including from a relationship root to an endpoint. Elements at the requested depth MUST appear as leaves.
 - **FR-007**: The command MUST omit any relationship already used on the current path, including the root relationship when tracing from a relationship. A connection through an unused relationship to an ancestor element MUST show that ancestor as a leaf. Other paths MUST be evaluated independently.
-- **FR-008**: Default pretty output MUST render a terminal tree using `├──` for nonfinal siblings, `└──` for final siblings, and `│` to continue branches through nested levels. Pretty output MUST identify the root and each related element as `ElementType: Name (id)`. Relationship branches MUST use the same format with `To` or `From` appended. JSON MUST provide the same ordered trees as an array in the feature 005 result envelope. Both formats MUST include the model type, authored name, and authored ID for each node or edge, and the direction for each relationship branch.
+- **FR-008**: Default pretty output MUST render a terminal tree using `├──` for nonfinal siblings, `└──` for final siblings, and `│` to continue branches through nested levels. Pretty output MUST identify the root and each related element as `ElementType: Name (id)`. Relationship branches MUST use the same format with `-> To` or `-> From` appended. JSON MUST provide the same ordered trees as an array in the feature 005 result envelope. Both formats MUST include the model type, authored name, and authored ID for each node or edge, and the direction for each relationship branch.
 - **FR-009**: Branches MUST be ordered by relationship type name, with `To` preceding `From` for the same type. Branches with the same type and direction MUST retain the authored model's relationship order. The command MUST leave the model and its exports unchanged.
 - **FR-010**: Invalid arguments, unknown IDs, and source-loading failures MUST follow existing CLI error and exit behavior. JSON mode MUST emit one result document on success or failure.
 
 - **FR-011**: The core model contract MUST require every node and edge to have a readonly, author-supplied string `name` as first-class metadata alongside its ID. Authors are responsible for uniqueness where their models require it. Core and CLI code MUST NOT enforce element ID or name uniqueness. Trace lookup uses the ID and returns all distinct matches.
-- **FR-012**: The CLI MUST read the canonical name from the core element contract in `trace-element`, `list-elements`, and present endpoint summaries in pretty and JSON output. Business-attribute customization and projection MUST leave the canonical name intact. `list-elements --property name` MUST remain a valid request and return the name through element identity. Listing and endpoint identity MUST contain only the core `id` and `name` fields. Other authored properties MUST follow the generic business-attribute rules.
+- **FR-012**: The CLI MUST read the canonical name from the core element contract in `trace-element`, `list-elements`, and present endpoint summaries in pretty and JSON output. Business-attribute customization and projection MUST leave the canonical name intact. `list-elements --property` MUST select business attributes only. `id` and `name` MUST be reserved for identity even when an attribute override returns those keys. Listing and endpoint identity MUST contain only the core `id` and `name` fields. Other authored properties MUST follow the generic business-attribute rules.
 - **FR-013**: Existing node and edge declarations, subclasses, construction sites, examples, fixtures, and public core and CLI documentation MUST be migrated to the required-name contract. Existing authored names MUST be preserved where models already provide them. Test fixtures that use `label` as a display value MUST move that value to `name`. Documentation MUST describe the core API change and name placement in CLI output.
 
 - **FR-014**: `trace-element` MUST reject `--property` through the same argument-error handling used for other unsupported options. Its help MUST list only options it accepts.

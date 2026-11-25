@@ -1,7 +1,9 @@
 import { readdir, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { canonical, contained, fileIdentity, PARTITION_ENTRY_SUFFIX } from '@cli/filesystem/paths';
-import { CliError, ordinal, type Entry } from '@cli/result';
+import { CliError } from '@cli/errors';
+import { ordinal } from '@cli/ordering';
+import type { Entry } from '@cli/source/model';
 
 export function validatePattern(pattern: string): void {
   if (!pattern || path.posix.isAbsolute(pattern) || /[\\\[\]{}():\x00-\x1f]/.test(pattern) ||

@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { InventoryResult } from '@cli/result';
+import type { InventoryResult } from '@cli/commands/partition-info/result';
 import { runCli, temporaryDirectory } from './cli-helpers.ts';
 const args = ['partition-info', '--root', 'tests/integration/fixtures/microservice-environment'];
 it('inventories all six fixture partitions in JSON and pretty output', async () => {

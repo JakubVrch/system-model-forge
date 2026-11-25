@@ -3,14 +3,15 @@ import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { runCli, temporaryDirectory } from './cli-helpers.ts';
 it('shows top-level help and a complete workflow without loading source', async () => {
-  const result = await runCli(['--help', '--root=/does-not-exist', '--format=json']);
+  const result = await runCli(['help', '--format=json'], '/tmp');
   expect(result.status).toBe(0);
   const doc = JSON.parse(result.stdout);
   expect(doc.command).toBe('help');
-  for (const text of ['Commands:', 'partition-info', 'list-elements', '--out', '--property', '--limit', '--tsconfig', 'trusted', 'overwrite', 'intersection', 'Workflow:']) {
+  for (const text of ['partition-info', 'list-elements', 'trace-element <element-id>', '--out', '--property', '--limit', '--depth', '--tsconfig', 'trusted', 'overwrite', 'intersection', 'model-forge trace-element serviceA']) {
     expect(doc.data.help).toContain(text);
   }
-  expect((await runCli(['--help'])).stdout).toBe(`${doc.data.help}\n`);
+  expect(doc.data.help).not.toMatch(/^(?:Commands|.*options|Selection|Execution and automation|Workflow):$/mi);
+  expect((await runCli(['help'])).stdout).toBe(`${doc.data.help}\n`);
 });
 
 it.each(['build', 'list-elements', 'partition-info'])(

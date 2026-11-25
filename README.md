@@ -10,9 +10,9 @@ import { Edge, Node, defineElement, exportDiagram, readonlySet, filterSet, union
 class ServiceNode extends Node {
   public constructor(
     public readonly id: string,
-    public readonly name: string,
+    name: string,
   ) {
-    super(id);
+    super(id, name);
   }
 
   public override toNotation(): string {
@@ -24,10 +24,10 @@ class Relationship extends Edge {
   public constructor(
     from: Node,
     to: Node,
-    public readonly name: string,
+    name: string,
     id: string,
   ) {
-    super(from, to, id);
+    super(from, to, id, name);
   }
 
   public override toNotation(): string {
@@ -72,7 +72,7 @@ export const service = defineElement(ServiceNode);
 export type { ServiceNode };
 ```
 
-Every constructor argument is preserved, including domain properties, optional values, defaults, and rest arguments. For example, an event definition can accept `event(serviceNode, topicNode, 'event-id', 'publish')`; every element requires an author-assigned string `id`; business fields remain author-defined.
+Every constructor argument is preserved, including domain properties, optional values, defaults, and rest arguments. For example, an event definition can accept `event(serviceNode, topicNode, 'event-id', 'Publish', 'publish')`. Every element requires an authored string `id` and `name`. Model authors define additional business fields.
 
 Use the generated predicate directly in queries:
 
@@ -93,24 +93,24 @@ adjacency and query behavior is unchanged.
 ```ts
 import { Edge, type Endpoint } from 'governed-model-core';
 
-// ServiceNode and DatabaseNode are authored Node subclasses with IDs.
+// ServiceNode and DatabaseNode are authored Node subclasses.
 class DatabaseUsage extends Edge<ServiceNode, DatabaseNode> {
   constructor(
     from: Endpoint<ServiceNode>,
     to: Endpoint<DatabaseNode>,
     id: string,
-    public readonly label = 'uses',
+    name: string,
   ) {
-    super(from, to, id);
+    super(from, to, id, name);
   }
 
   override toNotation(): string {
-    return `Rel(${this.from?.id}, ${this.to?.id}, "${this.label}")`;
+    return `Rel(${this.from?.id}, ${this.to?.id}, "${this.name}")`;
   }
 }
 ```
 
-Endpoint types are also inferred by `new Edge(service, database, 'relationship')`. Missing references
+Endpoint types are also inferred by `new Edge(service, database, 'relationship', 'Uses database')`. Missing references
 remain `undefined`; this type does not resolve IDs.
 Use `cleanSelection` before rendering when dangling relationships should be omitted.
 
@@ -248,8 +248,8 @@ const sharedTopic = findById(topics.elements.topics, 'shared');
 
 const serviceA = service('serviceA', 'Service A');
 const moduleA1 = module('moduleA1', 'Module A1');
-const contains = moduleComposition(serviceA, moduleA1, 'moduleComposition');
-const publishes = eventFlow(serviceA, sharedTopic, 'event-flow', 'publish');
+const contains = moduleComposition(serviceA, moduleA1, 'moduleComposition', 'contains');
+const publishes = eventFlow(serviceA, sharedTopic, 'event-flow', 'publish', 'publish');
 export const localModel = readonlySet([serviceA, moduleA1, contains, publishes]);
 ```
 
@@ -310,7 +310,7 @@ Author models with `Node` and `Edge` from the same built `governed-model-core`
 package that provides the CLI. The CLI recognizes subclasses through inheritance.
 The exploratory `graphKind` export has been removed.
 
-Nodes now require `Node(id)` and edges require `Edge(from, to, id)`. Custom constructors forward author-assigned IDs; duplicate IDs remain allowed. Every diagram requires an explicit `fileExtension` (for example `.mmd`), preserved alongside its exact text and membership. These are breaking authoring changes; no release version is selected here.
+Nodes require `Node(id, name)` and edges require `Edge(from, to, id, name)`. Custom constructors forward the authored ID and name. Authors own any uniqueness rules for their models. Every diagram requires an explicit `fileExtension` (for example `.mmd`), preserved alongside its exact text and membership. The required name changes the public constructor signatures.
 
 `getElementInfo()` returns a fresh readonly snapshot of supported own enumerable data fields (strings, finite numbers, null, undefined), excluding identity and framework state. It skips getters and richer values. Override it to compute or rename business attributes. Store internal state in `#private` or non-enumerable fields: ordinary TypeScript-private fields are still enumerable at runtime.
 
@@ -320,14 +320,16 @@ Nodes now require `Node(id)` and edges require `Edge(from, to, id)`. Custom cons
 Use Node >=24 and `yarn install --frozen-lockfile`, then `npm run build`.
 The package includes the `model-forge` executable; in this checkout use
 `node dist/cli/main.js`. The build records the package version inside `dist/`,
-so `--version` also works from a copied build directory. Commands that load
+so `model-forge version` also works from a copied build directory. Commands that load
 models use the installed runtime dependency `tsx`. The package remains private
 and is not published.
 
 ```bash
-node dist/cli/main.js --help
+node dist/cli/main.js help
+node dist/cli/main.js version
 node dist/cli/main.js partition-info --root tests/integration/fixtures/microservice-environment
-node dist/cli/main.js list-elements --root tests/integration/fixtures/microservice-environment --partition-id service-a --elements localModel --property name --limit 2 --format json
+node dist/cli/main.js list-elements --root tests/integration/fixtures/microservice-environment --partition-id service-a --elements localModel --property kind --limit 2 --format json
+node dist/cli/main.js trace-element serviceA --root tests/integration/fixtures/microservice-environment --partition-id service-a
 node dist/cli/main.js build --root tests/integration/fixtures/microservice-environment --out .tmp/cli-diagrams --dry-run
 node dist/cli/main.js build --root tests/integration/fixtures/microservice-environment --out .tmp/cli-diagrams --format json
 ```
@@ -339,23 +341,23 @@ memberships. The build writes the two published `eventOverview.mmd` files beneat
 
 | Option | Applies to | Meaning |
 | --- | --- | --- |
-| `--root <directory>` | All commands | Discovery root; defaults to current directory. |
-| `--partition-id <id>` | All commands | Repeatable exact, case-sensitive ID. |
-| `--partition-name <name>` | All commands | Repeatable exact, case-sensitive name; duplicate names select all matches. |
-| `--path <glob>` | All commands | Repeatable whole entry-path pattern relative to root, using `/`. |
+| `--root <directory>` | Model commands | Discovery root; defaults to current directory. |
+| `--partition-id <id>` | Model commands | Repeatable exact, case-sensitive ID. |
+| `--partition-name <name>` | Model commands | Repeatable exact, case-sensitive name; duplicate names select all matches. |
+| `--path <glob>` | Model commands | Repeatable whole entry-path pattern relative to root, using `/`. |
 | `--format pretty\|json` | All commands | Default `pretty`; `json` produces one result document. |
-| `--tsconfig <file>` | All commands | Explicit config; otherwise nearest config upward from root. |
+| `--tsconfig <file>` | Model commands | Explicit config; otherwise nearest config upward from root. |
 | `--elements <key>` | `list-elements` | Repeatable element-export key. |
 | `--diagram <key>` | `list-elements` | Repeatable diagram-export key. |
 | `--property <name>` | `list-elements` | Repeatable business attribute projection; metadata stays visible. |
 | `--limit <positive integer>` | `list-elements` | Limit each node and edge group independently; retain total/returned/omitted counts. |
 | `--out <directory>` | `build` | Required destination, resolved from current directory. |
 | `--dry-run` | `build` | Validate and show planned files; write no tool-managed files or caches. |
-| `--help`, `-h`, `--version` | Top level or commands | Help/version without evaluating model sources; supports JSON. |
+| `--depth <positive integer>` | `trace-element` | Maximum relationship hops, defaulting to one. |
 
 Both `--option value` and `--option=value` work. Root, output, and config paths
 resolve from the caller's directory. Unknown flags, repeated singleton options,
-unexpected positional arguments, and invalid limits fail.
+unexpected positional arguments, and invalid limits or depths fail.
 
 Repeated selectors of one kind form a union; ID, name, and path groups intersect.
 Each explicit value must match a candidate, and the final intersection must be
@@ -380,12 +382,32 @@ Without export filters, inspection lists all element and diagram exports.
 must occur in at least one selected partition. Empty exports remain visible.
 Properties are validated against full membership before limiting. Endpoints retain
 identity and full-export membership even when their records are omitted by a limit.
-The CLI never expands adjacency or merges distinct objects with equal IDs.
+Element listings preserve export membership and object identity.
+
+### Trace element relationships
+
+`trace-element <element-id>` searches published elements and diagram selections in
+the selected partitions. It follows existing links in the loaded graph, including
+links to elements outside those selections. Several exports can publish the same
+object. The trace prints it once and gives every distinct object with the requested
+ID its own tree.
+
+```text
+OrderService: Order Service (orders)
+├── ServiceCall: Primary Payment (payment-primary) -> To
+│   └── PaymentService: Payment Service (payments)
+└── ServiceCall: Submit Order (storefront-orders) -> From
+    └── Storefront: Online Store (storefront)
+```
+
+Use `--depth 2` to follow another hop. Parallel edges retain their own branches,
+and paths that return to an ancestor end there. The JSON result contains the
+ordered trees in `data.roots`. See the [trace CLI contract](specs/006-element-traceability/contracts/cli-trace.md).
 
 ### Results and automation
 
 Commands exit 0 on success and 1 on handled failure. Pretty output uses plain
-inventories, separate node/edge tables, or a build summary. JSON stdout contains
+inventories, node and edge tables, relationship trees, and build summaries. JSON stdout contains
 exactly one schemaVersion 1 document followed by a newline:
 
 ```json
@@ -396,11 +418,9 @@ Failures have `success:false`, a contextual `error` with `message` and `context`
 and `data:null`, except write failures retain a truthful partial build summary.
 Inventory data contains `partitions`; inspection contains `selections` with
 provenance and node/edge groups. Items expose `identity`, `attributes`, and `modelType` separately. Edges also describe
-endpoints. Consumers of earlier output must migrate from the generated `ref` to
-`identity.id` and account for possible duplicate IDs. An authored `attributes.ref`
-remains available. JSON preserves
+endpoints. Element and present endpoint `identity` contains `id` and `name`. The `--property` option selects business attributes. Element IDs may repeat. JSON preserves
 strings, finite numbers, and null; explicit undefined becomes null while absent
-keys stay omitted. See the [complete output contract](specs/005-cli-tool/contracts/output-contract.md).
+keys stay omitted. See the [baseline output contract](specs/005-cli-tool/contracts/output-contract.md) and the [current identity contract](specs/006-element-traceability/contracts/cli-trace.md#json-output).
 Source stdout/stderr is forwarded to stderr; diagnostics do not contaminate JSON.
 No prompts, colors, or default stack traces are emitted.
 
@@ -423,9 +443,9 @@ Run typechecking separately; source execution does not typecheck the model.
 
 ### Custom business fields and migration
 
-Forward explicit IDs through custom constructors: `super(id)` for nodes and
-`super(from, to, id)` for edges. The edge ID is the third base-constructor argument;
-existing endpoint positions are unchanged. No IDs are generated. Add
+Forward the authored ID and name through custom constructors with `super(id, name)`
+for nodes and `super(from, to, id, name)` for edges. Pass existing display names to the
+base constructor and use `this.name` where fixtures previously used a label. Add
 `fileExtension: '.mmd'` (or the authored format) to every published diagram:
 
 ```ts
@@ -440,11 +460,11 @@ richer values, override the synchronous, pure `getElementInfo()` method:
 ```ts
 class Service extends Node {
   #internal = 'hidden';
-  constructor(id: string, readonly name: string, readonly tags: readonly string[]) {
-    super(id);
+  constructor(id: string, name: string, readonly tags: readonly string[]) {
+    super(id, name);
   }
   override getElementInfo() {
-    return { name: this.name, tags: this.tags.join(', ') };
+    return { tags: this.tags.join(', ') };
   }
 }
 ```

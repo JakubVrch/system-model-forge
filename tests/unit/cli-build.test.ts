@@ -5,7 +5,8 @@ import { definePartition } from '@core';
 import { buildPlan } from '@cli/commands/build/plan';
 import { executeBuild as buildArtifacts } from '@cli/commands/build/write';
 import { discover } from '@cli/source/discover';
-import { CliError, type BuildPlan } from '@cli/result';
+import { CliError } from '@cli/errors';
+import type { BuildPlan } from '@cli/commands/build/result';
 import { temporaryDirectory } from '../integration/cli-helpers.ts';
 async function executeBuild(
   plan: BuildPlan, root: string, out: string, dryRun: boolean,

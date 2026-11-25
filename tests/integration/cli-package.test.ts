@@ -19,7 +19,7 @@ it('packs and installs production-only core, declarations, child and executable 
  expect(await readFile(join(packageDir,'dist/core/index.d.ts'),'utf8')).toContain('Node');
  expect(await readdir(packageDir)).not.toContain('src');
  expect(await readdir(join(consumer,'node_modules'))).not.toContain('vitest');
- await writeFile(join(consumer,'model.partition.ts'), "import { Edge, Node, definePartition } from 'governed-model-core'; class Service extends Node { name='Installed'; from='Prague'; to='Brno'; } class Calls extends Edge {} const n=new Service('n'); const e=new Calls(undefined, undefined, 'e'); export const partition=definePartition({id:'installed',name:'Installed',elements:{all:new Set([n,e])},diagrams:{chart:{data:new Set([n]),inNotation:'installed exact',fileExtension:'.txt'}}});");
+ await writeFile(join(consumer,'model.partition.ts'), "import { Edge, Node, definePartition } from 'governed-model-core'; class Service extends Node { from='Prague'; to='Brno'; } class Calls extends Edge {} const n=new Service('n', 'Installed'); const e=new Calls(undefined, undefined, 'e', 'Calls'); export const partition=definePartition({id:'installed',name:'Installed',elements:{all:new Set([n,e])},diagrams:{chart:{data:new Set([n]),inNotation:'installed exact',fileExtension:'.txt'}}});");
  const binary = join(consumer,'node_modules/.bin',process.platform === 'win32' ? 'model-forge.cmd' : 'model-forge');
  for (const args of [['--help'],['--version'],['partition-info'],['list-elements'],['build','--out','out']]) {
   const { stdout } = await exec(binary,[...args,'--format=json'], { cwd: consumer, timeout: 15000, shell: process.platform === 'win32' });
@@ -31,8 +31,8 @@ it('packs and installs production-only core, declarations, child and executable 
   }
  }
  expect(await readFile(join(consumer,'out/chart.txt'),'utf8')).toBe('installed exact');
- const runtime = await exec(process.execPath,['--input-type=module','-e',"import {Node} from 'governed-model-core'; console.log(new Node('id').id)"],{cwd:consumer}); expect(runtime.stdout.trim()).toBe('id');
+ const runtime = await exec(process.execPath,['--input-type=module','-e',"import {Node} from 'governed-model-core'; console.log(new Node('id', 'Node').id)"],{cwd:consumer}); expect(runtime.stdout.trim()).toBe('id');
  const compiler = resolve('node_modules/typescript/bin/tsc');
- await writeFile(join(consumer,'check.ts'), "import { Node } from 'governed-model-core'; const n: Node = new Node('id'); console.log(n.id);");
+ await writeFile(join(consumer,'check.ts'), "import { Node } from 'governed-model-core'; const n: Node = new Node('id', 'Node'); console.log(n.id);");
  await exec(process.execPath,[compiler,'--noEmit','--skipLibCheck','--module','NodeNext','--target','ES2023','check.ts'],{cwd:consumer});
 },120000);

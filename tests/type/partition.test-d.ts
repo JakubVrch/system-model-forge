@@ -2,7 +2,7 @@ import { expectTypeOf, it } from 'vitest';
 import { definePartition, defineElement, Node, Edge, readonlySet, type Partition, type PartitionDiagram } from '@core';
 
 class Item extends Node {
-  constructor(public id: string, public count = 1) { super(id); }
+  constructor(public id: string, public count = 1) { super(id, 'Item'); }
 }
 const item = defineElement(Item);
 const link = defineElement(Edge);
@@ -10,7 +10,7 @@ const empty = { id: 'id', name: 'Name', elements: {}, diagrams: {}, metamodel: {
 
 it('preserves keys, member subtypes, heterogeneous definitions, and readonly collections', () => {
   const partition = definePartition({ ...empty,
-    elements: { items: new Set([item('one')]), links: readonlySet([link(undefined, undefined, 'relationship')]) },
+    elements: { items: new Set([item('one')]), links: readonlySet([link(undefined, undefined, 'relationship', 'Relationship')]) },
     metamodel: { item, link },
   });
   expectTypeOf(partition.elements.items).toEqualTypeOf<ReadonlySet<Readonly<Item>>>();
@@ -64,7 +64,7 @@ it('rejects incomplete and incompatible declarations', () => {
 it('preserves diagram keys and member types while removing mutable input APIs', () => {
   const partition = definePartition({ ...empty, diagrams: {
     items: { data: new Set([item('one')]), fileExtension: '.mmd', inNotation: 'text' },
-    edges: { data: readonlySet([link(undefined, undefined, 'relationship')]), fileExtension: '.mmd', inNotation: '' },
+    edges: { data: readonlySet([link(undefined, undefined, 'relationship', 'Relationship')]), fileExtension: '.mmd', inNotation: '' },
   } });
   expectTypeOf(partition.diagrams.items).toEqualTypeOf<PartitionDiagram<Readonly<Item>>>();
   expectTypeOf(partition.diagrams.edges.data).toEqualTypeOf<ReadonlySet<Readonly<Edge>>>();

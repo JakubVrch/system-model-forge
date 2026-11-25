@@ -1,12 +1,10 @@
 import { LIST_ELEMENTS_COMMAND, type Invocation } from '@cli/arguments/options';
-import { CliError, type InspectionResult } from '@cli/result';
-import { discover } from '@cli/source/discover';
-import { loadSources } from '@cli/source/source-process';
+import { formatElements } from '@cli/commands/list-elements/format';
+import { isListElementsResponse } from '@cli/commands/list-elements/response';
+import { formatSuccess } from '@cli/output/result';
+import { runReadCommand } from '@cli/source/run-read-command';
 
-export async function runListElements(invocation: Invocation): Promise<InspectionResult> {
-  const { root, paths } = invocation;
-  const { entries } = await discover(root, paths);
-  const response = await loadSources({ invocation, entries });
-  if (response.kind !== LIST_ELEMENTS_COMMAND) throw new CliError('Source child returned a result for the wrong command');
-  return response.data;
+export async function runListElements(invocation: Invocation): Promise<string> {
+  const { data } = await runReadCommand(invocation, LIST_ELEMENTS_COMMAND, isListElementsResponse);
+  return formatSuccess(invocation.format, { command: LIST_ELEMENTS_COMMAND, data }, () => formatElements(data));
 }

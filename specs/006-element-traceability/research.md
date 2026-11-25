@@ -10,11 +10,11 @@
 
 ## Listing and projection
 
-**Decision**. Reserve `name` as identity metadata. The default attribute snapshot excludes it, and listing discards a custom business-attribute key named `name`. The canonical name is always present in listing results and endpoint identity. Keep `--property name` eligible when a selected member exists and return the name in identity. Treat `label` like any other authored business attribute. Migrate fixture display labels to the core name.
+**Decision**. Reserve `id` and `name` as identity metadata. The default attribute snapshot excludes both, and listing omits those keys from custom attribute records. Projection applies to business attributes. Treat `label` like any other authored business attribute. Migrate fixture display labels to the core name.
 
-**Rationale**. A single canonical field avoids conflicting values, and the existing option spelling remains useful in scripts. Previously, listing could also emit `attributes.name` and could omit or return a non-string `identity.name`. Document these differences in the CLI contract and retain the existing envelope version.
+**Rationale**. One source for each identity field avoids conflicting values. A projection controls the business attributes and always includes element identity.
 
-**Alternatives considered**. Duplicating the canonical value in attributes would retain the old field but leave two output locations for the same metadata. Removing the selector would break existing invocations that request it.
+**Alternatives considered**. Including identity in the attribute record would duplicate fields and leave room for overrides to provide conflicting values.
 
 ## Root lookup and traversal
 

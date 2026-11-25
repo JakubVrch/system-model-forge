@@ -1,8 +1,7 @@
 import type { Partition } from '@core';
-import {
-  CliError, DIAGRAM_EXPORT_GROUP, ELEMENT_EXPORT_GROUP, ordinal,
-  type LoadedCandidate, type ParentIdentity, type SelectedExport,
-} from '@cli/result';
+import { CliError } from '@cli/errors';
+import { DIAGRAM_EXPORT_GROUP, ELEMENT_EXPORT_GROUP, type LoadedCandidate, type ParentIdentity, type SelectedExport } from '@cli/source/model';
+import { ordinal } from '@cli/ordering';
 
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);

@@ -5,9 +5,9 @@ it('requires explicit readonly IDs and preserves inferred factory arguments', ()
   new Node();
   // @ts-expect-error edge ID is mandatory
   new Edge(undefined, undefined);
-  const node = defineElement(Node)('id');
+  const node = defineElement(Node)('id', 'Node');
   // @ts-expect-error identity is readonly
   node.id = 'changed';
   expectTypeOf(node.getElementInfo()).toEqualTypeOf<Readonly<Record<string, string | number | null | undefined>>>();
-  expectTypeOf(defineElement(Edge)(node, undefined, 'edge').id).toEqualTypeOf<string>();
+  expectTypeOf(defineElement(Edge)(node, undefined, 'edge', 'Edge').id).toEqualTypeOf<string>();
 });

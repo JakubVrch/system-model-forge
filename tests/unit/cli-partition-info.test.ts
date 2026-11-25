@@ -1,10 +1,10 @@
 import { expect, it } from 'vitest';
 import { Node, Edge, definePartition } from '@core';
 import { partitionInfo } from '@cli/commands/partition-info/inventory';
-import { formatInventory } from '@cli/output/format';
+import { formatInventory } from '@cli/commands/partition-info/format';
 it('inventories sorted full membership without evaluating business methods or exposing payloads', () => {
- const node = new Node('secret'); Object.defineProperty(node, 'getElementInfo', { value() { throw Error('must not evaluate'); } });
- const members = new Set([node, new Edge(node, undefined, 'edge')]);
+ const node = new Node('secret', 'Node'); Object.defineProperty(node, 'getElementInfo', { value() { throw Error('must not evaluate'); } });
+ const members = new Set([node, new Edge(node, undefined, 'edge', 'Relationship')]);
  const parent = { entry: { path: 'parent.partition.ts', absolutePath: '/parent', parentPath: null }, partition: definePartition({ id: 'parent', name: 'Parent' }) };
  const child = { entry: { path: 'child/child.partition.ts', absolutePath: '/child', parentPath: parent.entry.path }, partition: definePartition({ id: 'child', name: 'Child', elements: { z: members, a: new Set<Node>() }, diagrams: { chart: { data: members, fileExtension: '.mmd', inNotation: 'SECRET TEXT' } } }) };
  const result = partitionInfo([child], [parent, child]);

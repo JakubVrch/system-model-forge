@@ -1,7 +1,10 @@
 import type { GraphElement } from '@core';
 import { kindOf } from '@cli/source/graph-element';
 import { parentIdentity } from '@cli/source/select';
-import { CliError, ordinal, type ExportCounts, type InventoryResult, type LoadedCandidate } from '@cli/result';
+import { CliError } from '@cli/errors';
+import { ordinal } from '@cli/ordering';
+import type { ExportCounts, InventoryResult } from '@cli/commands/partition-info/result';
+import type { LoadedCandidate } from '@cli/source/model';
 
 function countExport(members: ReadonlySet<GraphElement>, path: string, key: string): ExportCounts {
   const counts = { node: 0, edge: 0 };

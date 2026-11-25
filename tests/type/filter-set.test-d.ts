@@ -4,7 +4,7 @@ const { service } = partition.metamodel;
 import { filterSet, readonlySet, Node, Edge, type GraphElement } from '@core';
 
 it('narrows set elements using generated metamodel guards', () => {
-  const elements = readonlySet<GraphElement>([service('api', 'API'), new Edge(undefined, undefined, 'relationship')]);
+  const elements = readonlySet<GraphElement>([service('api', 'API'), new Edge(undefined, undefined, 'relationship', 'Relationship')]);
   const services = filterSet(elements, service.is);
   expectTypeOf(services).toEqualTypeOf<ReadonlySet<ServiceNode>>();
   expectTypeOf(filterSet(elements, element => element.toNotation() !== '')).toEqualTypeOf<ReadonlySet<GraphElement>>();
