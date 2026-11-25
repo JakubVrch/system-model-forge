@@ -10,9 +10,14 @@ import { exportDiagram, saveDiagram, type GraphElement } from '@core/export/expo
 
 describe('declarations', () => {
   it('matches the public contract', () => {
-    const from = new Node('node');
-    const to = new Node('node');
-    const edge = new Edge(from, to, 'relationship');
+    const from = new Node('node', 'Node');
+    const to = new Node('node', 'Node');
+    const edge = new Edge(from, to, 'relationship', 'Relationship');
+
+    expectTypeOf<ConstructorParameters<typeof Node>>().toEqualTypeOf<[id: string, name: string]>();
+    expectTypeOf<ModelElement['name']>().toEqualTypeOf<string>();
+    // @ts-expect-error name is readonly
+    from.name = 'Changed';
 
     expectTypeOf<Edge['from']>().toEqualTypeOf<Node | undefined>();
     expectTypeOf<Node['edges']>().toEqualTypeOf<ReadonlySet<Edge>>();
@@ -28,7 +33,7 @@ describe('declarations', () => {
     edge.from = from;
 
     // @ts-expect-error sets are readonly
-    from.edges.add(new Edge(from, to, 'relationship'));
+    from.edges.add(new Edge(from, to, 'relationship', 'Relationship'));
 
     // @ts-expect-error abstract class cannot be constructed
     new ModelElement();
@@ -36,29 +41,29 @@ describe('declarations', () => {
 });
 
  it('types direction-aware queries', () => {
-   const nodes: ReadonlySet<Node> = new Set([new Node('node')]);
+   const nodes: ReadonlySet<Node> = new Set([new Node('node', 'Node')]);
    for (const direction of ['outgoing', 'incoming', 'both'] as const) {
      expectTypeOf(connectedNodes(nodes, edge => { expectTypeOf(edge).toEqualTypeOf<Edge>(); return true; }, direction)).toEqualTypeOf<ReadonlySet<Node>>();
    }
    // @ts-expect-error start arrays do not guarantee uniqueness
-   connectedNodes([new Node('node')], () => true, 'both');
+   connectedNodes([new Node('node', 'Node')], () => true, 'both');
    // @ts-expect-error direction required
    connectedNodes(nodes, () => true);
    // @ts-expect-error unsupported direction
    connectedNodes(nodes, () => true, 'sideways');
    // @ts-expect-error edges are not starting nodes
-   connectedNodes(new Set([new Edge(undefined, undefined, 'relationship')]), () => true, 'both');
+   connectedNodes(new Set([new Edge(undefined, undefined, 'relationship', 'Relationship')]), () => true, 'both');
  });
 
  it('types readonly selection cleanup', () => {
-   const selection: ReadonlySet<GraphElement> = new Set([new Node('node')]);
+   const selection: ReadonlySet<GraphElement> = new Set([new Node('node', 'Node')]);
    // @ts-expect-error selection arrays do not guarantee uniqueness
-   cleanSelection([new Node('node')]);
+   cleanSelection([new Node('node', 'Node')]);
    expectTypeOf(cleanSelection(selection)).toEqualTypeOf<ReadonlySet<GraphElement>>();
  });
 
 it('types protected sets and iterable exports', () => {
-  const elements = readonlySet<GraphElement>([new Node('node')]);
+  const elements = readonlySet<GraphElement>([new Node('node', 'Node')]);
   expectTypeOf(elements).toEqualTypeOf<ReadonlySet<GraphElement>>();
   expectTypeOf(exportDiagram(elements)).toEqualTypeOf<string>();
   // @ts-expect-error mutation is not exposed

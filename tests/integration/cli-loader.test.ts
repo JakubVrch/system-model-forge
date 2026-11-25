@@ -6,10 +6,11 @@ import { linkBuiltPackage, temporaryDirectory } from './cli-helpers.ts';
 import { loadSources } from '@cli/source/source-process';
 import { parseOptions } from '@cli/arguments/options';
 import { discover } from '@cli/source/discover';
-const childUrl = pathToFileURL(resolve('dist/cli/source/child.js'));
+import { isBuildResponse } from '@cli/commands/build/response';
+const childUrl = pathToFileURL(resolve('dist/cli/commands/build/run-source.js'));
 async function load(root: string, extra: string[] = [], diagnostics: string[] = []) {
  const invocation = parseOptions(['build', '--root', root, '--out', join(root, 'out'), ...extra]);
- return loadSources({ invocation, entries: (await discover(root, invocation.paths, invocation.out)).entries }, childUrl, text => diagnostics.push(text));
+ return loadSources({ invocation, entries: (await discover(root, invocation.paths, invocation.out)).entries }, childUrl, isBuildResponse, text => diagnostics.push(text));
 }
 it('loads a shared package graph, forwards stdout and shuts down lingering handles', async () => {
  const diagnostics: string[] = [];
@@ -35,7 +36,13 @@ it('uses explicit aliases and skips path-excluded broken sources but fails actua
  await writeFile(join(temp.path, 'good/good.partition.ts'), "import '../bad.partition.ts';");
  await expect(load(temp.path, ['--path=good/**'])).rejects.toThrow(/good.partition.ts.*broken-source/);
 });
-it.each([['process.exit(0)', /exited/], ['export const other = {};', /partition/], ['export const partition = {id: 1};', /partition/], ["process.send?.({kind:'build',plan:{partitions:'invalid'}});", /invalid/i]])('rejects early exit or malformed source results: %s', async (source, error) => {
+it.each([
+  ['process.exit(0)', /exited/],
+  ['export const other = {};', /partition/],
+  ['export const partition = {id: 1};', /partition/],
+  ["process.send?.({kind:'build',plan:{partitions:'invalid'}});", /invalid/i],
+  ["process.send?.({kind:'partition-info',data:{partitions:[]}});", /invalid/i],
+])('rejects early exit or malformed source results: %s', async (source, error) => {
  await using temp = await temporaryDirectory();
  await writeFile(join(temp.path, 'entry.partition.ts'), source);
  await expect(load(temp.path)).rejects.toThrow(error);

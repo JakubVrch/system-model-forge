@@ -1,8 +1,8 @@
 import { defineElement, Node } from 'governed-model-core';
 
 class DatabaseNode extends Node {
-  public constructor(public readonly id: string, public readonly name: string) {
-    super(id);
+  public constructor(public readonly id: string, name: string) {
+    super(id, name);
   }
 
   public override toNotation(): string {

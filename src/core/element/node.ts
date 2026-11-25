@@ -3,8 +3,8 @@ import { ModelElement } from './model-element.ts';
 import type { Edge } from './edge.ts';
 
 export class Node extends ModelElement {
-  public constructor(public readonly id: string) {
-    super();
+  public constructor(public readonly id: string, name: string) {
+    super(name);
   }
 
   public toNotation(): string {

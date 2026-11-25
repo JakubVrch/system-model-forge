@@ -4,7 +4,7 @@ const { service } = partition.metamodel;
 import { unionSet, readonlySet, Node, Edge } from '@core';
 
 it('infers the union of heterogeneous source element types without explicit arguments', () => {
-  const node = new Node('node'), edge = new Edge(node, undefined, 'relationship');
+  const node = new Node('node', 'Node'), edge = new Edge(node, undefined, 'relationship', 'Relationship');
   const result = unionSet([node], readonlySet([edge]), new Set(['text']));
   expectTypeOf(result).toEqualTypeOf<ReadonlySet<Node | Edge | string>>();
   const instance = service('api', 'API');

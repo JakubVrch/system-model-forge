@@ -1,18 +1,12 @@
 import type { GraphElement } from '@core';
-import { kindOf, readData } from '@cli/source/graph-element';
-import {
-  CliError, IDENTITY_ATTRIBUTE_KEYS, ordinal, type AttributeValue, type ElementView, type EndpointView,
-  type GroupResult, type Identity, type InspectionResult, type SelectedExport,
-} from '@cli/result';
+import { describeElement, kindOf, readData } from '@cli/source/graph-element';
+import { CliError } from '@cli/errors';
+import { ordinal } from '@cli/ordering';
+import type { AttributeValue, ElementView, EndpointView, GroupResult, InspectionResult } from '@cli/commands/list-elements/result';
+import type { SelectedExport } from '@cli/source/model';
 
 type NormalizedElement = Omit<ElementView, 'endpoints'>;
 type NormalizeElement = (value: unknown, selection: SelectedExport) => NormalizedElement;
-
-function modelType(value: object): string | null {
-  const constructor = readData(Object.getPrototypeOf(value), 'constructor');
-  const name = readData(constructor, 'name');
-  return typeof name === 'string' && name && !['Node', 'Edge', 'Object'].includes(name) ? name : null;
-}
 
 function isAttributeValue(value: unknown): value is AttributeValue {
   return value == null || typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value));
@@ -28,6 +22,7 @@ function normalizeAttributes(value: unknown): Record<string, AttributeValue> {
 
   const attributes: Record<string, AttributeValue> = Object.create(null);
   for (const key of Object.keys(info).sort(ordinal)) {
+    if (key === 'id' || key === 'name') continue;
     const descriptor = Object.getOwnPropertyDescriptor(info, key);
     if (!descriptor || !('value' in descriptor) || !isAttributeValue(descriptor.value)) {
       throw new Error(`invalid attribute ${JSON.stringify(key)}`);
@@ -41,13 +36,8 @@ function normalizeElement(value: unknown, selection: SelectedExport): Normalized
   const id = readData(value, 'id');
   try {
     const kind = kindOf(value);
-    if (typeof id !== 'string') throw new Error('requires string id');
-    const attributes = normalizeAttributes(value);
-    const identity: Identity = { id };
-    for (const key of IDENTITY_ATTRIBUTE_KEYS) {
-      if (Object.hasOwn(attributes, key)) identity[key] = attributes[key];
-    }
-    return { kind, modelType: modelType(value as GraphElement), identity, attributes };
+    const description = describeElement(value as GraphElement);
+    return { kind, ...description, attributes: normalizeAttributes(value) };
   } catch (error) {
     const { partition, export: selectionExport } = selection;
     const identity = typeof id === 'string' ? JSON.stringify(id) : '(missing id)';

@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { definePartition, Node } from '@core';
 import { selectCandidates, parentIdentity, validatePartition } from '@cli/source/select';
-import type { LoadedCandidate } from '@cli/result';
+import type { LoadedCandidate } from '@cli/source/model';
 const candidate = (id: string, name: string, path: string, parentPath: string | null = null): LoadedCandidate => ({ entry: { path, absolutePath: `/root/${path}`, parentPath }, partition: definePartition({ id, name }) });
 const values = [candidate('a', 'same', 'a.partition.ts'), candidate('b', 'same', 'child/b.partition.ts', 'a.partition.ts'), candidate('c', 'other', 'z.partition.ts')];
 it('unions within kinds, intersects across kinds and never expands parents', () => {
@@ -21,5 +21,5 @@ it('enriches parent identity only from loaded candidates', () => {
 });
 it('validates public groups but allows distinct elements with duplicate IDs', () => {
  expect(() => validatePartition({ id: 'a', name: 'A' }, 'a.partition.ts')).toThrow();
- expect(() => validatePartition(definePartition({ id: 'a', name: 'A', elements: { items: new Set([new Node('same'), new Node('same')]) } }), 'a.partition.ts')).not.toThrow();
+ expect(() => validatePartition(definePartition({ id: 'a', name: 'A', elements: { items: new Set([new Node('same', 'Node'), new Node('same', 'Node')]) } }), 'a.partition.ts')).not.toThrow();
 });

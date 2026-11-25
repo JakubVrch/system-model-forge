@@ -40,9 +40,28 @@ it('rejects malformed business values and missing IDs from authored sources with
  await using temp = await temporaryDirectory();
  await writeFile(join(temp.path, 'package.json'), '{"type":"module"}');
  await linkBuiltPackage(temp.path);
- for (const body of ["getElementInfo() { return { bad: true }; }", "constructor() { super(undefined); }", "getElementInfo() { throw Error('business failed'); }"]) {
-  await writeFile(join(temp.path, 'model.partition.ts'), `import {Node,definePartition} from 'governed-model-core'; class Bad extends Node { ${body} } export const partition=definePartition({id:'bad',name:'Bad',elements:{all:new Set([new Bad('id')])}});`);
+ for (const body of ["getElementInfo() { return { bad: true }; }", "constructor() { super(undefined, 'Bad'); }", "getElementInfo() { throw Error('business failed'); }"]) {
+  await writeFile(join(temp.path, 'model.partition.ts'), `import {Node,definePartition} from 'governed-model-core'; class Bad extends Node { ${body} } export const partition=definePartition({id:'bad',name:'Bad',elements:{all:new Set([new Bad('id', 'Bad')])}});`);
   const result = await runCli(['list-elements','--root',temp.path,'--format=json']);
   expect(result.status).toBe(1); const doc=JSON.parse(result.stdout); expect(doc.data).toBeNull(); expect(doc.error.context).toMatchObject({ path:'model.partition.ts',exportKey:'all' });
  }
+});
+
+it('lists canonical service environment names for nodes, edges, and external endpoints', async () => {
+  const result = await runCli([
+    'list-elements', '--root', 'tests/integration/fixtures/microservice-environment',
+    '--partition-id', 'service-a', '--elements', 'localModel', '--property', 'kind', '--format', 'json',
+  ]);
+  expect(result.status).toBe(0);
+  const selection = JSON.parse(result.stdout).data.selections[0];
+  expect(selection.nodes.items[0].identity).toEqual({ id: 'serviceA', name: 'Service A' });
+  expect(selection.edges.items).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      identity: { id: 'service-a-uses-database', name: 'uses' },
+      attributes: {},
+      endpoints: expect.objectContaining({
+        to: expect.objectContaining({ identity: { id: 'databaseA', name: 'Database A' }, inExport: false }),
+      }),
+    }),
+  ]));
 });

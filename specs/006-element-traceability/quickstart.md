@@ -14,7 +14,7 @@ Use the existing unit and integration suites together and aim for 85% combined c
 ## Check help and version
 
 ```bash
-node dist/cli/main.js help trace-element
+node dist/cli/main.js help
 node dist/cli/main.js version
 ```
 
@@ -41,7 +41,7 @@ The JSON result contains one tree rooted at `shared`, with three incoming branch
 ## Verify canonical names in existing listing output
 
 ```bash
-node dist/cli/main.js list-elements --root "$fixture_root" --partition-id service-a --elements localModel --property name --format json
+node dist/cli/main.js list-elements --root "$fixture_root" --partition-id service-a --elements localModel --property kind --format json
 ```
 
 Expect the authored names on node and edge identities and available endpoints, including the referenced database. Listing and present endpoint identity contain only the core ID and name. The service environment's existing diagram and build assertions should continue to pass after fixture migration.

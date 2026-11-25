@@ -1,7 +1,7 @@
 <!--
 Sync Impact Report
-Version change: 1.0.0 -> 1.1.0
-Modified principles: V -> VI (added Host-Language First)
+Version change: 1.1.0 -> 1.2.0
+Modified principles: III. Composable, Package-Bounded Design (added workflow composition and CLI ownership)
 Added sections: none
 Removed sections: none
 Follow-up TODOs: none
@@ -25,6 +25,16 @@ This principle is necessary to support cross-package composition without brittle
 Model definitions MUST be package-based and composable. Packages may define metamodel fragments, node types, edge types, queries, and export routines, and may import other packages only through explicit interfaces. Package boundaries MUST remain stable and reviewable.
 
 This principle prevents uncontrolled interdependence and supports microservice-style model composition while keeping governance and ownership clear.
+
+Application workflows SHOULD compose feature-owned procedures through explicit
+inputs and result types. Shared workflow code SHOULD accept feature-specific
+behavior through function parameters. In the CLI, each command MUST own its
+execution procedure, result data, result validation, and human-readable
+formatting. The CLI entry point selects the procedure once. Shared code owns
+source loading, IPC, JSON envelopes, diagnostics, and exit status.
+
+Keeping a command's workflow together makes it easier to read and test. Shared
+infrastructure can handle common behavior consistently across commands.
 
 ### IV. Immutability of Shared Exports
 If a package exports model elements, other packages MUST NOT be able to mutate those exported values or object state. Shared model exports MUST be treated as immutable contracts. Mutation MUST be prevented by design or by strong runtime guards.
@@ -80,4 +90,4 @@ Amendments require documentation of the change, clear rationale, and a reviewed 
 
 Compliance review includes checking that changes preserve immutability, validate deterministic builds, and remain within the approved MVP boundaries. Design decisions that expand scope beyond the core model library or add unsupported governance features MUST be explicitly documented and approved before implementation.
 
-**Version**: 1.1.0 | **Ratified**: 2026-09-13 | **Last Amended**: 2026-09-13
+**Version**: 1.2.0 | **Ratified**: 2026-09-13 | **Last Amended**: 2026-11-25

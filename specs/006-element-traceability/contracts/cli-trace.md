@@ -16,7 +16,6 @@ Selectors determine which exports can supply starting elements. Print one tree f
 
 ```text
 model-forge help
-model-forge help trace-element
 model-forge version
 ```
 
@@ -24,7 +23,7 @@ The help and version commands run without an element ID or source loading.
 
 ## Pretty output
 
-Render each element as `ModelType: Name (id)`. Add `To` or `From` on edge lines. Use `├──`, `└──`, and `│` for branches and escape control characters according to the CLI's plain output conventions.
+Render each element as `ModelType: Name (id)`. Append `-> To` or `-> From` on edge lines. Use `├──`, `└──`, and `│` for branches and escape control characters according to the CLI's plain output conventions.
 
 ```text
 OrderService: Order Service (orders)
@@ -38,4 +37,4 @@ OrderService: Order Service (orders)
 
 Extend the feature 005 envelope with the `trace-element` command and do not advance `schemaVersion`. A successful result has `success: true`, `error: null`, and `data: { roots }`. The recursive fields are defined in the [data model](../data-model.md). JSON retains exact strings and uses `null` for an unavailable model type.
 
-For `list-elements`, item and present endpoint `identity.name` are required strings sourced from the core element. In pretty output, use the authored name in the table's Name column and endpoint details. JSON no longer repeats the name in `attributes.name`. The `--property name` spelling remains valid for listings with selected elements and returns the canonical name through identity. Other projections also keep identity names. Listing and endpoint identity contain only `id` and `name`. Any custom `label` is an ordinary business attribute and follows the same rules as any other authored key.
+For `list-elements`, item and present endpoint `identity.name` are required strings sourced from the core element. In pretty output, use the authored name in the table's Name column and endpoint details. The `--property` option selects business attributes, and every projection retains core identity. The CLI rejects `id` and `name` as property selectors, including when an attribute override supplies those keys. Listing and endpoint identity contain only `id` and `name`. Any custom `label` is an ordinary business attribute and follows the same rules as any other authored key.

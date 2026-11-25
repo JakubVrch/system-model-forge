@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { defineElement, Node, Edge } from '@core';
 
 class ServiceNode extends Node {
-  public constructor(public id: string, public name = id, public readonly options = { enabled: true }) {
-    super(id);
+  public constructor(public id: string, name = id, public readonly options = { enabled: true }) {
+    super(id, name);
   }
 }
 
 class EventEdge extends Edge {
   public constructor(from: Node, to: Node, id: string, public readonly kind: 'read' | 'write', ...labels: string[]) {
-    super(from, to, id);
+    super(from, to, id, 'Event Flow');
     this.labels = labels;
   }
   public readonly labels: string[];
@@ -36,6 +36,7 @@ describe('defineElement', () => {
 
     expect(Object.isFrozen(first)).toBe(true);
     expect(Reflect.set(first, 'id', 'changed')).toBe(false);
+    expect(Reflect.set(first, 'name', 'Changed')).toBe(false);
     expect(Object.isFrozen(options)).toBe(false);
     options.enabled = false;
     expect(first.options.enabled).toBe(false);
@@ -43,8 +44,8 @@ describe('defineElement', () => {
 
   it('finishes constructing an edge before freezing it', () => {
     const eventFlow = defineElement(EventEdge);
-    const from = new Node('node');
-    const to = new Node('node');
+    const from = new Node('node', 'Node');
+    const to = new Node('node', 'Node');
     const edge = eventFlow(from, to, 'flow', 'write', 'audit', 'async');
     expect(edge.kind).toBe('write');
     expect(edge.labels).toEqual(['audit', 'async']);
@@ -94,7 +95,7 @@ describe('defineElement', () => {
     const error = new Error('invalid model');
     class Invalid extends Node {
       public constructor() {
-        super('invalid');
+        super('invalid', 'Invalid');
         throw error;
       }
     }

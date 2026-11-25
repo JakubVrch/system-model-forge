@@ -3,8 +3,8 @@ import type { ServiceNode } from './service-node.ts';
 import type { TopicNode } from '../../topics/topics.partition.ts';
 
 class EventFlow extends Edge<ServiceNode, TopicNode> {
-  public constructor(from: Endpoint<ServiceNode>, to: Endpoint<TopicNode>, id: string, public readonly kind: 'publish' | 'subscribe') {
-    super(from, to, id);
+  public constructor(from: Endpoint<ServiceNode>, to: Endpoint<TopicNode>, id: string, name: string, public readonly kind: 'publish' | 'subscribe') {
+    super(from, to, id, name);
   }
 
   public override toNotation(): string {

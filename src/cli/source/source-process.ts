@@ -3,8 +3,9 @@ import { createRequire } from 'node:module';
 import { access } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { validResponse } from '@cli/source/ipc';
-import { CHILD_ERROR_KIND, CliError, type ChildRequest, type ChildResponse, type ChildResult } from '@cli/result';
+import { validResponse, type ChildFailure, type ResponseValidator } from '@cli/source/ipc';
+import { CHILD_ERROR_KIND, type ChildRequest, type ChildResult } from '@cli/source/result';
+import { CliError } from '@cli/errors';
 
 /** Give the loader time to close stdio before forcing exit for lingering authored handles. */
 const CHILD_SHUTDOWN_GRACE_MS = 200;
@@ -31,11 +32,12 @@ async function tsconfigFor(request: ChildRequest): Promise<string | undefined> {
   }
 }
 
-export async function loadSources(
+export async function loadSources<Result extends ChildResult>(
   request: ChildRequest,
-  childUrl = new URL('./child.js', import.meta.url),
+  childUrl: URL,
+  validate: ResponseValidator<Result>,
   diagnostics = (text: string) => { process.stderr.write(text); },
-): Promise<ChildResult> {
+): Promise<Result> {
   const tsconfig = await tsconfigFor(request);
   const env: NodeJS.ProcessEnv = { ...process.env, TSX_DISABLE_CACHE: '1' };
   delete env.TSX_TSCONFIG_PATH;
@@ -48,7 +50,7 @@ export async function loadSources(
       env,
       stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
     });
-    let response: ChildResponse | undefined;
+    let response: Result | ChildFailure | undefined;
     let problem: Error | undefined;
     let forceTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -69,7 +71,7 @@ export async function loadSources(
 
     child.on('message', value => {
       if (response || problem) return;
-      if (validResponse(value)) response = value;
+      if (validResponse(value, validate)) response = value;
       else problem = new CliError('Source child returned an invalid result');
       terminate();
     });

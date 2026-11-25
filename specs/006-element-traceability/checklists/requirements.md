@@ -33,4 +33,4 @@
 
 - Reviewed all 16 criteria against the four user stories, their edge cases, and the five measurable outcomes.
 - The criteria cover specification readiness. The outcomes provide acceptance targets for implementation.
-- Revalidated the required core name, migration scope, CLI identity output, and compatibility for name projection.
+- Revalidated the required core name, migration scope, CLI identity output, and business-attribute projection.

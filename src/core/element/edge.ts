@@ -10,8 +10,10 @@ export class Edge<From extends Node = Node, To extends Node = Node> extends Mode
   public readonly from: Endpoint<From>;
   public readonly to: Endpoint<To>;
 
-  public constructor(from: Endpoint<From>, to: Endpoint<To>, public readonly id: string) {
-    super();
+  public constructor(
+    from: Endpoint<From>, to: Endpoint<To>, public readonly id: string, name: string,
+  ) {
+    super(name);
     this.from = from;
     this.to = to;
 

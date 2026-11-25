@@ -5,7 +5,7 @@ import { defineElement, Node, Edge, type ElementDefinition, type GraphElement } 
 
 it('preserves argument tuples, domain parameters, readonly results, and predicate narrowing', () => {
   class Custom extends Node {
-    public constructor(public id: string, public count = 1, ...labels: string[]) { super(id); this.labels = labels; }
+    public constructor(public id: string, public count = 1, ...labels: string[]) { super(id, 'Custom'); this.labels = labels; }
     public readonly labels: string[];
   }
   const custom = defineElement(Custom);
@@ -25,7 +25,7 @@ it('preserves argument tuples, domain parameters, readonly results, and predicat
   new custom('id');
   // @ts-expect-error requires a ModelElement constructor
   defineElement(class Unrelated {});
-  const values: unknown[] = [value, new Edge(undefined, undefined, 'relationship'), null];
+  const values: unknown[] = [value, new Edge(undefined, undefined, 'relationship', 'Relationship'), null];
   expectTypeOf(values.filter(custom.is)).toEqualTypeOf<Custom[]>();
 });
 
@@ -42,5 +42,12 @@ it('exports metamodel definitions and type-only classes with domain-specific sig
   // @ts-expect-error domain eventFlow kind is required
   eventFlow(from, from);
   // @ts-expect-error invalid domain eventFlow kind
-  eventFlow(from, from, 'event-flow', 'unknown');
+  eventFlow(from, from, 'event-flow', 'Event Flow', 'unknown');
+});
+
+it('requires names on base element definitions', () => {
+  const node = defineElement(Node);
+  const edge = defineElement(Edge);
+  expectTypeOf(node).parameter(1).toEqualTypeOf<string>();
+  expectTypeOf(edge).parameter(3).toEqualTypeOf<string>();
 });

@@ -1,7 +1,8 @@
 import { posix } from 'node:path';
-import {
-  CliError, DIAGRAM_EXPORT_GROUP, ordinal, type BuildPlan, type LoadedCandidate, type PlannedPartition,
-} from '@cli/result';
+import { CliError } from '@cli/errors';
+import { DIAGRAM_EXPORT_GROUP, type LoadedCandidate } from '@cli/source/model';
+import { ordinal } from '@cli/ordering';
+import type { BuildPlan, PlannedPartition } from '@cli/commands/build/result';
 
 /** Common filesystem limit for a single filename component, measured in UTF-8 bytes. */
 const MAX_FILENAME_BYTES = 255;

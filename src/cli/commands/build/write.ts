@@ -1,10 +1,10 @@
 import { lstat, mkdir, realpath, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { canonical, contained, fileIdentity, isMissingPath, PARTITION_ENTRY_SUFFIX } from '@cli/filesystem/paths';
-import {
-  CliError, DIAGRAM_EXPORT_GROUP, ordinal, type BuildArtifact, type BuildPlan,
-  type BuildSummary, type ErrorContext, type PartitionIdentity,
-} from '@cli/result';
+import { CliError, type ErrorContext } from '@cli/errors';
+import { DIAGRAM_EXPORT_GROUP, type PartitionIdentity } from '@cli/source/model';
+import { ordinal } from '@cli/ordering';
+import type { BuildArtifact, BuildPlan, BuildSummary } from '@cli/commands/build/result';
 
 /** Existing regular-file obstructions are write errors; symlinks are preflight errors. */
 async function rejectSymlinks(target: string): Promise<void> {

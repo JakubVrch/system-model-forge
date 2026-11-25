@@ -3,7 +3,7 @@ import { defineElement, definePartition, Node, Edge, readonlySet } from '@core';
 
 class Item extends Node {
   metadata = { labels: ['original'] };
-  constructor(public id: string) { super(id); }
+  constructor(public id: string) { super(id, 'Item'); }
 }
 const item = defineElement(Item);
 const empty = { id: '', name: '', elements: {}, diagrams: {}, metamodel: {} };
@@ -90,13 +90,13 @@ it('allows fresh graph composition without changing published state or prior sna
   const before = published.edges;
   const partition = definePartition({ ...empty, elements: { nodes: new Set([published]) } });
   const other = new Item('other');
-  const connection = new Edge(other, published, 'relationship');
+  const connection = new Edge(other, published, 'relationship', 'Relationship');
   expect([...published.incoming]).toEqual([connection]);
   expect(before.size).toBe(0);
   expect([...partition.elements.nodes]).toEqual([published]);
   expect(published.id).toBe('published');
   expect(Object.isFrozen(published)).toBe(false);
-  const dangling = new Edge(published, undefined, 'relationship');
+  const dangling = new Edge(published, undefined, 'relationship', 'Relationship');
   const edges = definePartition({ ...empty, elements: { edges: new Set([connection, dangling]) } });
   expect([...edges.elements.edges]).toEqual([connection, dangling]);
   expect(edges.elements.edges.size).toBe(2);
@@ -112,7 +112,7 @@ it('publishes independent diagram snapshots and exact authored text without comp
   const foreign = new Item('foreign');
   definePartition({ ...empty, elements: { foreign: new Set([foreign]) } });
   const diagramOnly = new Item('diagram-only');
-  const edge = new Edge(local, foreign, 'relationship');
+  const edge = new Edge(local, foreign, 'relationship', 'Relationship');
   const source = new Set([diagramOnly, foreign]);
   const first = { data: source, fileExtension: '.mmd', inNotation: ' \n authored text\t\n' };
   const second = { data: readonlySet([edge]), fileExtension: '.mmd', inNotation: 'unrelated text' };
@@ -146,7 +146,7 @@ it('publishes independent diagram snapshots and exact authored text without comp
 });
 
 it('retains dangling diagram edges without cleanup', () => {
-  const edge = new Edge(undefined, undefined, 'relationship');
+  const edge = new Edge(undefined, undefined, 'relationship', 'Relationship');
   const partition = definePartition({ ...empty, diagrams: {
     dangling: { data: new Set([edge]), fileExtension: '.mmd', inNotation: 'supplied' },
   } });
@@ -160,7 +160,7 @@ it('passes authored model state and definition guards through without inspection
     metadata = { nested: ['original'], map: new Map(), set: new Set(), date: new Date(),
       bytes: new Uint8Array(1), custom: new Metadata() };
   }
-  const value = new Authored('authored');
+  const value = new Authored('authored', 'Node');
   let reads = 0;
   Object.defineProperty(value, 'secret', { get() { reads++; return {}; } });
   const definition = defineElement(Authored);
@@ -202,7 +202,7 @@ it('normalizes omitted contribution groups into independent frozen empty mapping
 });
 
 it('copies the exact required extension into a frozen diagram without changing membership', () => {
-  const value = new Node('extension-node');
+  const value = new Node('extension-node', 'Node');
   const source = { data: new Set([value]), inNotation: ' exact\n', fileExtension: '.diagram.txt' };
   const result = definePartition({ id: 'extension', name: 'Extension', diagrams: { view: source } });
   source.fileExtension = '.changed';

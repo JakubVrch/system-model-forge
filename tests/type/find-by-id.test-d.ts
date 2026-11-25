@@ -9,7 +9,7 @@ it('preserves element types and requires an ID matching the collection', () => {
   // @ts-expect-error lookup ID must match the declared ID type
   findById(values, 1);
   // core Node now has a required string ID
-  findById(new Set([new Node('node')]), 'one');
+  findById(new Set([new Node('node', 'Node')]), 'one');
   // @ts-expect-error query accepts a set
   findById([item], 'one');
 });
